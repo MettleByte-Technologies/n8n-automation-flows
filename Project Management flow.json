@@ -1,0 +1,995 @@
+{
+  "name": "My workflow 2",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "apostille-order",
+        "options": {}
+      },
+      "id": "25883528-e666-42eb-8289-cc8d7ac6853c",
+      "name": "Tally Form Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        -4160,
+        128
+      ],
+      "webhookId": "apostille-order"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse Tally form submission and generate order\nconst formData = $input.all()[0].json.body || $input.all()[0].json;\nconst orderId = 'APO-' + Date.now() + '-' + Math.random().toString(36).substr(2, 5).toUpperCase();\n\n// Validate required fields\nconst requiredFields = ['clientName', 'clientEmail', 'phone', 'serviceType', 'state', 'documents', 'deliveryAddress'];\nconst missingFields = requiredFields.filter(field => !formData[field]);\n\nif (missingFields.length > 0) {\n  throw new Error(`Missing required fields: ${missingFields.join(', ')}`);\n}\n\nreturn [{\n  json: {\n    orderId,\n    clientName: formData.clientName.trim(),\n    clientEmail: formData.clientEmail.toLowerCase().trim(),\n    phone: formData.phone.replace(/\\D/g, ''),\n    serviceType: formData.serviceType,\n    state: formData.state.toUpperCase(),\n    documents: Array.isArray(formData.documents) ? formData.documents : [formData.documents],\n    deliveryAddress: formData.deliveryAddress.trim(),\n    orderStatus: 'Pending',\n    createdAt: new Date().toISOString(),\n    providerAssigned: null,\n    addressConfirmed: false,\n    docsVerified: false,\n    trackingNumber: null\n  }\n}];"
+      },
+      "id": "af4c2934-9cc0-4ec1-810c-363cb127a560",
+      "name": "Parse Form Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -3968,
+        128
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "databaseId": "{{ $credentials.notionOrdersDbId }}",
+        "title": "={{ $json.orderId }}",
+        "options": {}
+      },
+      "id": "9db7d6c3-2fac-4a41-9f1c-98bb394da7dc",
+      "name": "Create Notion Order",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2,
+      "position": [
+        -3760,
+        128
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "customer",
+        "operation": "create",
+        "additionalFields": {
+          "email": "={{ $json.clientEmail }}",
+          "phone": "={{ $json.phone }}"
+        }
+      },
+      "id": "53559417-073c-4fad-bc0a-6047b64ef828",
+      "name": "Create Stripe Customer",
+      "type": "n8n-nodes-base.stripe",
+      "typeVersion": 1,
+      "position": [
+        -3568,
+        32
+      ],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "resource": "invoice"
+      },
+      "id": "cd222dc3-ab77-4b6a-8684-2339766e487a",
+      "name": "Create Stripe Invoice",
+      "type": "n8n-nodes-base.stripe",
+      "typeVersion": 1,
+      "position": [
+        -3360,
+        32
+      ],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "subject": "Order Confirmation - {{ $node['Parse Form Data'].json.orderId }}",
+        "options": {}
+      },
+      "id": "c3851a47-5e76-4aeb-ac54-578269a9877b",
+      "name": "Send Confirmation Email",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        -3168,
+        32
+      ],
+      "webhookId": "e1b441d9-da3e-4874-b0b2-89ac411b823f"
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "getAll",
+        "databaseId": "{{ $credentials.notionProvidersDbId }}",
+        "returnAll": true,
+        "options": {}
+      },
+      "id": "fed46957-4e12-486c-926b-5f66d3a9c5cb",
+      "name": "Search Providers",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2,
+      "position": [
+        -3568,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Store order data for provider loop\nconst orderData = $node['Parse Form Data'].json;\nconst providers = $input.all();\n\nif (!providers || providers.length === 0) {\n  // No providers found for this state\n  return [{\n    json: {\n      ...orderData,\n      noProvidersFound: true,\n      providers: []\n    }\n  }];\n}\n\n// Pass order data with provider list\nreturn [{\n  json: {\n    ...orderData,\n    providers: providers.map(p => ({\n      id: p.json.id,\n      name: p.json.properties.Name?.title?.[0]?.text?.content || 'Unknown',\n      phone: p.json.properties.Phone?.phone_number || '',\n      email: p.json.properties.Email?.email || ''\n    })),\n    currentProviderIndex: 0,\n    providerAssigned: false\n  }\n}];"
+      },
+      "id": "aab0f3a7-3ffc-476d-b831-231a22cde314",
+      "name": "Prepare Provider List",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -3360,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.noProvidersFound }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "169b0509-70c3-41df-9816-eb33d3063e8d",
+      "name": "No Providers Found?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        -3168,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "b668aa39-9f97-4461-8749-864978fc146c",
+      "name": "Loop Through Providers",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -2960,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get current provider from the loop\nconst orderData = $input.all()[0].json;\nconst currentIndex = orderData.currentProviderIndex || 0;\nconst providers = orderData.providers || [];\n\nif (currentIndex >= providers.length) {\n  // No more providers\n  return [{\n    json: {\n      ...orderData,\n      noMoreProviders: true\n    }\n  }];\n}\n\nconst currentProvider = providers[currentIndex];\n\nreturn [{\n  json: {\n    ...orderData,\n    currentProvider: currentProvider,\n    providerName: currentProvider.name,\n    providerPhone: currentProvider.phone,\n    providerEmail: currentProvider.email\n  }\n}];"
+      },
+      "id": "c049513c-c397-4a59-a36c-1ded72afe904",
+      "name": "Get Current Provider",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2736,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "from": "{{ $credentials.twilioPhone }}",
+        "to": "={{ $json.providerPhone }}",
+        "message": "New Apostille Order!\n\nState: {{ $json.state }}\nService: {{ $json.serviceType }}\nOrder: {{ $json.orderId }}\n\nReply YES to accept or NO to decline within 15 minutes.",
+        "options": {}
+      },
+      "id": "98a1798a-6ddc-4ee7-9a42-afd63353c111",
+      "name": "SMS Provider Offer",
+      "type": "n8n-nodes-base.twilio",
+      "typeVersion": 1,
+      "position": [
+        -2560,
+        320
+      ],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "amount": 15,
+        "unit": "minutes"
+      },
+      "id": "2b771d1e-7ba7-41b8-b7e2-d51aad3f6f06",
+      "name": "Wait for Provider Response",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [
+        -2384,
+        320
+      ],
+      "webhookId": "71585eb9-d5fc-4246-aade-cbf981a8f73a"
+    },
+    {
+      "parameters": {
+        "url": "https://api.twilio.com/2010-04-01/Accounts/{{ $credentials.twilioAccountSid }}/Messages.json",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "From",
+              "value": "={{ $json.providerPhone }}"
+            },
+            {
+              "name": "DateSentAfter",
+              "value": "={{ new Date(Date.now() - 900000).toISOString() }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "12464a27-922e-4242-b446-ebb0136a7174",
+      "name": "Check Provider SMS",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [
+        -2208,
+        320
+      ],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Process provider SMS response\nconst orderData = $node['Get Current Provider'].json;\nconst twilioResponse = $input.all()[0].json;\n\nlet providerAccepted = false;\n\n// Check if we received a YES response\nif (twilioResponse.messages && Array.isArray(twilioResponse.messages)) {\n  const yesMessage = twilioResponse.messages.find(msg => \n    msg.body && msg.body.toUpperCase().includes('YES')\n  );\n  \n  if (yesMessage) {\n    providerAccepted = true;\n  }\n}\n\nif (providerAccepted) {\n  return [{\n    json: {\n      ...orderData,\n      providerAccepted: true,\n      assignedProvider: orderData.currentProvider,\n      providerResponseTime: new Date().toISOString()\n    }\n  }];\n} else {\n  // Provider declined or no response - increment to try next\n  return [{\n    json: {\n      ...orderData,\n      providerAccepted: false,\n      currentProviderIndex: (orderData.currentProviderIndex || 0) + 1\n    }\n  }];\n}"
+      },
+      "id": "6ea1e205-bc1f-4290-9a21-073a6af3b6f2",
+      "name": "Process Provider Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2000,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.providerAccepted }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "5358f99e-7e38-444b-b04c-ad896f1ec1d5",
+      "name": "Provider Accepted?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        -1824,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "update",
+        "pageId": "={{ $node['Create Notion Order'].json.id }}",
+        "options": {}
+      },
+      "id": "e5924c9b-0f0a-41d8-b65a-acf8a2e3ed0e",
+      "name": "Update - Provider Assigned",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2,
+      "position": [
+        -1600,
+        112
+      ]
+    },
+    {
+      "parameters": {
+        "subject": "Order Assignment - {{ $json.orderId }}",
+        "options": {}
+      },
+      "id": "450c4678-37f2-4a50-93fa-177ec20e3694",
+      "name": "Email Provider Details",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        -1408,
+        112
+      ],
+      "webhookId": "d34b5a57-ccb9-419d-8370-02d9bdc44d0c"
+    },
+    {
+      "parameters": {
+        "from": "{{ $credentials.twilioPhone }}",
+        "to": "={{ $json.phone }}",
+        "message": "Hi {{ $json.clientName }},\n\nYour order {{ $json.orderId }} has been assigned to a courier.\n\nPlease confirm your delivery address:\n{{ $json.deliveryAddress }}\n\nReply CONFIRM if correct or call us to update.",
+        "options": {}
+      },
+      "id": "89723a8f-4baf-48b6-a3d2-23ada83dd080",
+      "name": "Request Address Confirmation",
+      "type": "n8n-nodes-base.twilio",
+      "typeVersion": 1,
+      "position": [
+        -1200,
+        112
+      ]
+    },
+    {
+      "parameters": {
+        "amount": 30,
+        "unit": "minutes"
+      },
+      "id": "d2fea463-9c42-40f7-b174-c7be99f67991",
+      "name": "Wait 30 Minutes",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [
+        -1008,
+        112
+      ],
+      "webhookId": "82a00806-2ad7-45cc-b4cc-6a5d11f6125b"
+    },
+    {
+      "parameters": {
+        "url": "https://api.twilio.com/2010-04-01/Accounts/{{ $credentials.twilioAccountSid }}/Messages.json",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "To",
+              "value": "={{ $json.phone }}"
+            },
+            {
+              "name": "DateSentAfter",
+              "value": "={{ new Date(Date.now() - 1800000).toISOString() }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "b779142b-469d-48f5-b52f-142f152043e9",
+      "name": "Check Client SMS Reply",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [
+        -784,
+        32
+      ],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "limit": 10,
+        "filters": {
+          "labelIds": [
+            "INBOX"
+          ],
+          "q": "from:{{ $json.assignedProvider.email }} subject:{{ $json.orderId }} VERIFIED"
+        }
+      },
+      "id": "00c59be0-4c26-4ab4-b4d6-5dedb90ad7a7",
+      "name": "Check Provider Email",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2,
+      "position": [
+        -784,
+        192
+      ],
+      "webhookId": "50066ae9-fcd6-471f-b81a-95ae2b9110ed",
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combinationMode": "multiplex",
+        "options": {}
+      },
+      "id": "3e84ad57-0ecd-473a-8045-72ca08abcfe8",
+      "name": "Merge Confirmation Data",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 2.1,
+      "position": [
+        -560,
+        112
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Process confirmation check results\nconst orderData = $node['Request Address Confirmation'].json;\nconst smsData = $input.all()[0].json;\nconst emailData = $input.all()[1].json;\n\n// Check if client confirmed via SMS\nlet addressConfirmed = false;\nif (smsData.messages && Array.isArray(smsData.messages)) {\n  addressConfirmed = smsData.messages.some(msg => \n    msg.body && msg.body.toUpperCase().includes('CONFIRM')\n  );\n}\n\n// Check if provider verified via email\nlet docsVerified = false;\nif (emailData && emailData.length > 0) {\n  docsVerified = true; // Found email with VERIFIED in subject\n}\n\nconst bothConfirmed = addressConfirmed && docsVerified;\n\nreturn [{\n  json: {\n    ...orderData,\n    bothConfirmed,\n    addressConfirmed,\n    docsVerified,\n    smsCheckResult: smsData,\n    emailCheckResult: emailData\n  }\n}];"
+      },
+      "id": "4d194507-11d0-403d-8421-ae4e3f0b5832",
+      "name": "Process Confirmations",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -384,
+        112
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.bothConfirmed }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "3720547b-971b-43f9-8407-057fd1308238",
+      "name": "Both Confirmed?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        -208,
+        112
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://api.goshippo.com/shipments",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "ShippoToken {{ $credentials.shippoApiKey }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n  \"address_from\": {\n    \"name\": \"Apostille Service\",\n    \"street1\": \"123 Business St\",\n    \"city\": \"New York\",\n    \"state\": \"NY\",\n    \"zip\": \"10001\",\n    \"country\": \"US\"\n  },\n  \"address_to\": {\n    \"name\": \"{{ $json.clientName }}\",\n    \"street1\": \"{{ $json.deliveryAddress }}\",\n    \"city\": \"City\",\n    \"state\": \"{{ $json.state }}\",\n    \"zip\": \"00000\",\n    \"country\": \"US\"\n  },\n  \"parcels\": [{\n    \"length\": \"11\",\n    \"width\": \"8.5\",\n    \"height\": \"0.5\",\n    \"distance_unit\": \"in\",\n    \"weight\": \"1\",\n    \"mass_unit\": \"lb\"\n  }],\n  \"async\": false\n}",
+        "options": {}
+      },
+      "id": "e1bab4ae-b287-45b2-9de4-ad171b61825b",
+      "name": "Create Shipping Label",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [
+        0,
+        0
+      ],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "update",
+        "pageId": "={{ $node['Create Notion Order'].json.id }}",
+        "options": {}
+      },
+      "id": "b4de225b-f2db-4c4f-8c90-be65c82ac0ee",
+      "name": "Update - Label Created",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2,
+      "position": [
+        192,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "subject": "Shipping Label Ready - {{ $json.orderId }}",
+        "options": {}
+      },
+      "id": "cf3bbc75-e189-42ce-a38e-30778dace324",
+      "name": "Send Label to Provider",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        384,
+        0
+      ],
+      "webhookId": "a68f50b1-0a04-4bb4-a0b8-828e68fe347c"
+    },
+    {
+      "parameters": {
+        "subject": "Your Order Has Been Shipped - {{ $json.orderId }}",
+        "options": {}
+      },
+      "id": "624494f1-3915-445a-8485-9ffd3b563df6",
+      "name": "Send Tracking to Client",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        592,
+        0
+      ],
+      "webhookId": "ec80f66f-e3f8-4751-8b1f-663e55d838f4"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Store tracking info for monitoring\nconst trackingData = {\n  orderId: $json.orderId,\n  trackingNumber: $json.tracking_number || 'DEMO-TRACKING-123',\n  notionPageId: $node['Create Notion Order'].json.id,\n  shippedAt: new Date().toISOString()\n};\n\n// In production, this would be stored in a database for tracking checks\n// For now, just pass it through\nreturn [{\n  json: trackingData\n}];"
+      },
+      "id": "68190bd0-510f-46a1-9351-856b87e62ae0",
+      "name": "Store Tracking Info",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        784,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Check if we have more providers to try\nconst currentIndex = $json.currentProviderIndex || 0;\nconst totalProviders = $json.providers ? $json.providers.length : 0;\n\nif (currentIndex >= totalProviders) {\n  // No more providers - need to escalate\n  return [{\n    json: {\n      ...($json),\n      allProvidersExhausted: true,\n      triedCount: currentIndex\n    }\n  }];\n} else {\n  // Still have providers to try\n  return [{\n    json: {\n      ...($json),\n      allProvidersExhausted: false,\n      continueLoop: true\n    }\n  }];\n}"
+      },
+      "id": "b09b97b6-6ee7-4e70-9bf3-2706cd4fabc9",
+      "name": "Check Providers Remaining",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1648,
+        432
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.allProvidersExhausted }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "c445a6da-572d-4194-8486-bd54efb3e213",
+      "name": "All Providers Tried?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        -1440,
+        432
+      ]
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "mode": "list",
+          "value": ""
+        },
+        "text": "=:warning: No Providers Available\n\nOrder: {{ $json.orderId }}\nState: {{ $json.state }}\n\nNo active couriers found for this state. Manual assignment required.",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        -2960,
+        128
+      ],
+      "id": "9e1da0e9-e309-4874-a903-455b2eb1bd68",
+      "name": "Alert - No Providers",
+      "webhookId": "08ccef06-6b2a-4e19-93f5-f004669109ce"
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "mode": "list",
+          "value": ""
+        },
+        "text": "=:warning: All Providers Declined\n\nOrder: {{ $json.orderId }}\nState: {{ $json.state }}\n\nAll providers have declined or not responded. Manual assignment required.",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        -1264,
+        320
+      ],
+      "id": "8d1eb24d-4d69-4524-98e6-a3e69c8725f0",
+      "name": "Alert - All Declined",
+      "webhookId": "f2472db9-249b-497a-a831-d89e79d2d00b"
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "mode": "list",
+          "value": ""
+        },
+        "text": "=:rotating_light: Confirmations Not Received\n\nOrder: {{ $json.orderId }}\nAddress Confirmed: {{ $json.addressConfirmed }}\nDocs Verified: {{ $json.docsVerified }}\n\nManual intervention required.",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        0,
+        208
+      ],
+      "id": "2f9dd6d6-2f4d-47c5-8778-27ee48c84306",
+      "name": "Send a message",
+      "webhookId": "b577a466-878c-42bb-85db-64322952766e"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Tally Form Webhook": {
+      "main": [
+        [
+          {
+            "node": "Parse Form Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Form Data": {
+      "main": [
+        [
+          {
+            "node": "Create Notion Order",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Notion Order": {
+      "main": [
+        [
+          {
+            "node": "Create Stripe Customer",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Search Providers",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Stripe Customer": {
+      "main": [
+        [
+          {
+            "node": "Create Stripe Invoice",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Stripe Invoice": {
+      "main": [
+        [
+          {
+            "node": "Send Confirmation Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search Providers": {
+      "main": [
+        [
+          {
+            "node": "Prepare Provider List",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Provider List": {
+      "main": [
+        [
+          {
+            "node": "No Providers Found?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "No Providers Found?": {
+      "main": [
+        [
+          {
+            "node": "Alert - No Providers",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Loop Through Providers",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Through Providers": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Get Current Provider",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Current Provider": {
+      "main": [
+        [
+          {
+            "node": "SMS Provider Offer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SMS Provider Offer": {
+      "main": [
+        [
+          {
+            "node": "Wait for Provider Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait for Provider Response": {
+      "main": [
+        [
+          {
+            "node": "Check Provider SMS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Provider SMS": {
+      "main": [
+        [
+          {
+            "node": "Process Provider Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process Provider Response": {
+      "main": [
+        [
+          {
+            "node": "Provider Accepted?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Provider Accepted?": {
+      "main": [
+        [
+          {
+            "node": "Update - Provider Assigned",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Check Providers Remaining",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update - Provider Assigned": {
+      "main": [
+        [
+          {
+            "node": "Email Provider Details",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email Provider Details": {
+      "main": [
+        [
+          {
+            "node": "Request Address Confirmation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Request Address Confirmation": {
+      "main": [
+        [
+          {
+            "node": "Wait 30 Minutes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait 30 Minutes": {
+      "main": [
+        [
+          {
+            "node": "Check Client SMS Reply",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Check Provider Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Client SMS Reply": {
+      "main": [
+        [
+          {
+            "node": "Merge Confirmation Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Provider Email": {
+      "main": [
+        [
+          {
+            "node": "Merge Confirmation Data",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge Confirmation Data": {
+      "main": [
+        [
+          {
+            "node": "Process Confirmations",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process Confirmations": {
+      "main": [
+        [
+          {
+            "node": "Both Confirmed?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Both Confirmed?": {
+      "main": [
+        [
+          {
+            "node": "Create Shipping Label",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Shipping Label": {
+      "main": [
+        [
+          {
+            "node": "Update - Label Created",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update - Label Created": {
+      "main": [
+        [
+          {
+            "node": "Send Label to Provider",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Label to Provider": {
+      "main": [
+        [
+          {
+            "node": "Send Tracking to Client",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Tracking to Client": {
+      "main": [
+        [
+          {
+            "node": "Store Tracking Info",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Providers Remaining": {
+      "main": [
+        [
+          {
+            "node": "All Providers Tried?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "All Providers Tried?": {
+      "main": [
+        [
+          {
+            "node": "Alert - All Declined",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Loop Through Providers",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "0f20376a-6238-4c31-bf49-ccea8610bcc7",
+  "meta": {
+    "instanceId": "e27d6d2836420e8fc09347dd52584c6fef2dd98bcc801f8a8a9144cc8eebd676"
+  },
+  "id": "MVdAgSoFiElwJoJQ",
+  "tags": []
+}

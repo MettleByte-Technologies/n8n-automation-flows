@@ -1,0 +1,1755 @@
+{
+  "name": "AI Automation for Personalization of webpages",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1648,
+        448
+      ],
+      "id": "252a27c1-3fb8-4b4d-a4f8-723a0df7a3d2",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4.1-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -912,
+        336
+      ],
+      "id": "a7655fe2-aaa7-4696-9e33-152a08af305e",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "wTSZ8SaZV25avtvM",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=## INPUT VARIABLES\n\nA full description of the lead’s persona. Include behavioral traits, preferences, decision-making style, and relevant psychographic information.\n\n{{ $('When clicking ‘Execute workflow’').item.json.leads.toJsonString() }}\n\n\n{{campaign_details}}  \nDetails of the marketing campaign this lead is part of. Include campaign goals, urgency level, offer type, and target stage in the buyer journey.\n",
+        "options": {
+          "systemMessage": "=## ROLE\nYou are an **AI Section Selector** with 20+ years of expertise in marketing personalization.  \nYour task is to **analyze a lead's persona and campaign details**, compare them to available section templates, and **select the single most relevant section variant** from the provided Section Table.  \nYou must return **only structured JSON output** containing:\n- The selected section’s ID and Name_Section\n- The matching tags\n- The reason why this section is the best fit for this persona\n\n\n\n\n---\n\n## SECTION TABLE\nBelow is the **complete section reference table**.  \nEach section has:  \n- `ID` → Unique numeric identifier  \n- `Name_Section` → Section template name  \n- `Tags` → Hashtags indicating suitability for persona and context  \n- `Short_Description` → Short summary of section intent  \n\n[\n  {\n    \"ID\": 0,\n    \"Name_Section\": \"Hero_1.01\",\n    \"Short_Description\": \"Headline with subtext and strong quote with credibility signals. Built for trust-building and late-stage reassurance.\",\n    \"Tags\": [\"#hero\", \"#trust\", \"#social_proof\", \"#quote\", \"#for_high_N\", \"#for_doubter\", \"#late_stage\"]\n  },\n  {\n    \"ID\": 1,\n    \"Name_Section\": \"Hero_1.02\",\n    \"Short_Description\": \"Focused on direct action and urgency, includes email form, countdown and product preview.\",\n    \"Tags\": [\"#hero\", \"#cta_primary\", \"#for_d\", \"#for_impulsive\", \"#urgency\", \"#early_stage\"]\n  },\n  {\n    \"ID\": 2,\n    \"Name_Section\": \"Hero_1.03\",\n    \"Short_Description\": \"Highly visual component focused on the explanation of how the system works. Ideal for visual or open-minded personas.\",\n    \"Tags\": [\"#hero\", \"#visual\", \"#explainer\", \"#how_it_works\", \"#for_high_O\", \"#for_analytical\", \"#information\"]\n  },\n  {\n    \"ID\": 3,\n    \"Name_Section\": \"Hero_1.04\",\n    \"Short_Description\": \"Human image, combined with soft quote and CTA — ideal for hesitant or high-Neuroticism personas who need both proof and clarity.\",\n    \"Tags\": [\"#hero\", \"#for_doubter\", \"#for_s\", \"#trust\", \"#emotional\", \"#social_proof\", \"#cta_secondary\"]\n  },\n  {\n    \"ID\": 4,\n    \"Name_Section\": \"Hero_1.05\",\n    \"Short_Description\": \"Human photo combined with live visitor data + client count for balance between credibility and relatability.\",\n    \"Tags\": [\"#hero\", \"#for_trust\", \"#social_proof\", \"#for_s\", \"#for_doubter\", \"#for_high_N\"]\n  },\n  {\n    \"ID\": 12,\n    \"Name_Section\": \"Hero_1.06\",\n    \"Short_Description\": \"Human photo combined with live visitor data + client count for balance between credibility and relatability.\",\n    \"Tags\": [\"#hero\", \"#for_analytical\", \"#data_block\", \"#trust\", \"#performance\", \"#visual\", \"#early_stage\"]\n  }\n]\n\n---\n\n## DECISION LOGIC\n1. Read `persona_details` and identify:\n   - Key behavioral traits (e.g., doubter, impulsive, analytical, visual, trust-focused).\n   - Buyer journey stage (early_stage, late_stage, etc.).\n2. Read `campaign_details` and note:\n   - Urgency level.\n   - Offer positioning.\n   - Emotional vs. rational appeal needed.\n3. Compare traits & campaign factors with **Tags** in the Section Table.\n4. Choose **ONE** section whose tags and description best match both persona and campaign.\n5. If two are equally relevant, prefer the one **later in the buyer journey** if persona is cautious, or **earlier in journey** if persona is impulsive.\n\n---\n\n## OUTPUT FORMAT\nReturn **only valid JSON**, no extra text, or code tag like'''json.  \nThe JSON must have:\n\n{\"selected_section_id\": \"<ID>\",\"selected_section_name\": \"<Name_Section>\",\"matching_tags\": [\"<tag1>\", \"<tag2>\", \"...\"],\"reason_for_selection\": \"<1-2 sentence explanation clearly stating why this section matches the persona and campaign>\"}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        -1648,
+        896
+      ],
+      "id": "7fb4987b-f9a3-4933-9834-0288dd5c3ea2",
+      "name": "AI Section Selector"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4.1-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4.1-mini"
+        },
+        "options": {
+          "maxTokens": 2048
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        352,
+        336
+      ],
+      "id": "7c410e8e-acb4-4524-ae19-37652e850bef",
+      "name": "OpenAI Chat Model1",
+      "credentials": {
+        "openAiApi": {
+          "id": "wTSZ8SaZV25avtvM",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "4b843b70-b499-4da9-bbd3-ca68952b0956",
+              "name": "Templates",
+              "value": "[\n  {\n    \"ID\": 1,\n    \"Type\": \"Top-Hero\",\n    \"Name_Section\": \"Top-hero_1\",\n    \"Short_Description\": \"This hero section introduces the personalization analysis performed for the visitor. It dynamically adapts the headline, persona label, description, and key points to match the lead’s decision-making style. It also previews the first 5 upcoming sections with tailored titles and reasons/subtext for why they are relevant\",\n    \"Tags\": \"#include_always #hero_section, #personalization, #persona_based, #dynamic_content, #for_all_personas, #top_funnel\",\n    \"Variable_Text\": \"[\\n  {\\n    \\\"variable\\\": \\\"hero_headline\\\",\\n    \\\"instruction\\\": \\\"Engaging headline that speaks directly to the persona, emphasizing personalization and decision-making differences.\\\",\\n    \\\"max_length\\\": 80\\n  },\\n  {\\n    \\\"variable\\\": \\\"persona_name\\\",\\n    \\\"instruction\\\": \\\"Full name of the persona being addressed.\\\",\\n    \\\"max_length\\\": 40\\n  },\\n  {\\n    \\\"variable\\\": \\\"persona_label\\\",\\n    \\\"instruction\\\": \\\"Short label describing the type of persona (e.g., Analytical, Doubter, Impulsive).\\\",\\n    \\\"max_length\\\": 30\\n  },\\n  {\\n    \\\"variable\\\": \\\"persona_description\\\",\\n    \\\"instruction\\\": \\\"Brief description summarizing the persona's decision-making style, communication preference, and trust factors.\\\",\\n    \\\"max_length\\\": 200\\n  },\\n  {\\n    \\\"variable\\\": \\\"persona_keypoint_1\\\",\\n    \\\"instruction\\\": \\\"First key point about this persona’s behavior, preferences, or challenges.\\\",\\n    \\\"max_length\\\": 100\\n  },\\n  {\\n    \\\"variable\\\": \\\"persona_keypoint_2\\\",\\n    \\\"instruction\\\": \\\"Second key point about this persona’s behavior, preferences, or challenges.\\\",\\n    \\\"max_length\\\": 100\\n  },\\n  {\\n    \\\"variable\\\": \\\"persona_keypoint_3\\\",\\n    \\\"instruction\\\": \\\"Third key point about this persona’s behavior, preferences, or challenges.\\\",\\n    \\\"max_length\\\": 100\\n  },\\n  {\\n    \\\"variable\\\": \\\"persona_keypoint_4\\\",\\n    \\\"instruction\\\": \\\"Fourth key point about this persona’s behavior, preferences, or challenges.\\\",\\n    \\\"max_length\\\": 100\\n  },\\n  {\\n    \\\"variable\\\": \\\"hero_section_1_title\\\",\\n    \\\"instruction\\\": \\\"Title for the first recommended section, tailored to the persona.\\\",\\n    \\\"max_length\\\": 60\\n  },\\n  {\\n    \\\"variable\\\": \\\"hero_section_1_subtext\\\",\\n    \\\"instruction\\\": \\\"Short explanation for why this section is relevant to the persona.\\\",\\n    \\\"max_length\\\": 80\\n  },\\n  {\\n    \\\"variable\\\": \\\"hero_section_2_title\\\",\\n    \\\"instruction\\\": \\\"Title for the second recommended section, tailored to the persona.\\\",\\n    \\\"max_length\\\": 60\\n  },\\n  {\\n    \\\"variable\\\": \\\"hero_section_2_subtext\\\",\\n    \\\"instruction\\\": \\\"Short explanation for why this section is relevant to the persona.\\\",\\n    \\\"max_length\\\": 80\\n  },\\n  {\\n    \\\"variable\\\": \\\"hero_section_3_title\\\",\\n    \\\"instruction\\\": \\\"Title for the third recommended section, tailored to the persona.\\\",\\n    \\\"max_length\\\": 60\\n  },\\n  {\\n    \\\"variable\\\": \\\"hero_section_3_subtext\\\",\\n    \\\"instruction\\\": \\\"Short explanation for why this section is relevant to the persona.\\\",\\n    \\\"max_length\\\": 80\\n  },\\n  {\\n    \\\"variable\\\": \\\"hero_section_4_title\\\",\\n    \\\"instruction\\\": \\\"Title for the fourth recommended section, tailored to the persona.\\\",\\n    \\\"max_length\\\": 60\\n  },\\n  {\\n    \\\"variable\\\": \\\"hero_section_4_subtext\\\",\\n    \\\"instruction\\\": \\\"Short explanation for why this section is relevant to the persona.\\\",\\n    \\\"max_length\\\": 80\\n  },\\n  {\\n    \\\"variable\\\": \\\"hero_section_5_title\\\",\\n    \\\"instruction\\\": \\\"Title for the fifth recommended section, tailored to the persona.\\\",\\n    \\\"max_length\\\": 60\\n  },\\n  {\\n    \\\"variable\\\": \\\"hero_section_5_subtext\\\",\\n    \\\"instruction\\\": \\\"Short explanation for why this section is relevant to the persona.\\\",\\n    \\\"max_length\\\": 80\\n  }\\n]\"\n  },\n  {\n    \"ID\": 2,\n    \"Type\": \"Hero Section\",\n    \"Name_Section\": \"Hero_1\",\n    \"Short_Description\": \"Description: Headline with subtext and strong quote paired with credibility signals (e.g., testimonials, waiting list count). Built for trust-building and late-stage reassurance when the lead is close to conversion.\",\n    \"Tags\": \"#hero, #trust_building, #late_stage, #credibility_signals, #proof_driven\",\n    \"Variable_Text\": \"[\\n  {\\n    \\\"variable\\\": \\\"hero_top_label\\\",\\n    \\\"instruction\\\": \\\"Small badge or statement above the headline to introduce trust or context.\\\",\\n    \\\"max_length\\\": 40\\n  },\\n  {\\n    \\\"variable\\\": \\\"hero_headline_1\\\",\\n    \\\"instruction\\\": \\\"Primary headline to express value or reassurance, based on visitor’s decision style.\\\",\\n    \\\"max_length\\\": 60\\n  },\\n  {\\n    \\\"variable\\\": \\\"hero_subtext_1\\\",\\n    \\\"instruction\\\": \\\"Subheadline that supports the main headline with a softer message or explanation.\\\",\\n    \\\"max_length\\\": 120\\n  },\\n  {\\n    \\\"variable\\\": \\\"hero_quote_text\\\",\\n    \\\"instruction\\\": \\\"Quote styled as testimonial that builds trust through clarity or shared experience.\\\",\\n    \\\"max_length\\\": 100\\n  },\\n  {\\n    \\\"variable\\\": \\\"hero_quote_jobtitle\\\",\\n    \\\"instruction\\\": \\\"Job title of the person behind the quote (use visitor’s persona/job role if dynamic).\\\",\\n    \\\"max_length\\\": 30\\n  },\\n  {\\n    \\\"variable\\\": \\\"hero_trust_badge_1\\\",\\n    \\\"instruction\\\": \\\"Short trust indicator such as compliance or certification (e.g. GDPR).\\\",\\n    \\\"max_length\\\": 25\\n  },\\n  {\\n    \\\"variable\\\": \\\"hero_trust_badge_2\\\",\\n    \\\"instruction\\\": \\\"Second trust label to reinforce credibility (e.g. AVG-proof, secure).\\\",\\n    \\\"max_length\\\": 25\\n  },\\n  {\\n    \\\"variable\\\": \\\"hero_trust_badge_3\\\",\\n    \\\"instruction\\\": \\\"Third trust-related label for extra depth or redundancy.\\\",\\n    \\\"max_length\\\": 25\\n  }\\n]\"\n  },\n  {\n    \"ID\": 13,\n    \"Type\": \"How does it work\",\n    \"Name_Section\": \"How_1\",\n    \"Short_Description\": \"Carousel with multiple slides explaining the process in a clear step-by-step journey. Designed to reduce uncertainty and build trust by visually guiding visitors through how the solution works. Best for S and Doubter personas who need structure and reassurance.\",\n    \"Tags\": \"#how, #carousel, #process_steps, #visual_journey, #educational, #top_funnel, #for_s, #for_doubter\",\n    \"Variable_Text\": \"[\\n  {\\n    \\\"variable\\\": \\\"How_headline1\\\",\\n    \\\"instruction\\\": \\\"Strong, benefit-driven headline introducing the transformation or value proposition of the process being shown in the carousel.\\\",\\n    \\\"max_length\\\": 60\\n  },\\n  {\\n    \\\"variable\\\": \\\"How_button_1\\\",\\n    \\\"instruction\\\": \\\"Short action-oriented label summarizing a key benefit or outcome, placed as the first selectable button.\\\",\\n    \\\"max_length\\\": 25\\n  },\\n  {\\n    \\\"variable\\\": \\\"How_button_2\\\",\\n    \\\"instruction\\\": \\\"Short action-oriented label summarizing a second distinct benefit or feature.\\\",\\n    \\\"max_length\\\": 25\\n  },\\n  {\\n    \\\"variable\\\": \\\"How_button_3\\\",\\n    \\\"instruction\\\": \\\"Short action-oriented label summarizing a third distinct benefit or feature.\\\",\\n    \\\"max_length\\\": 25\\n  }\\n]\"\n  },\n  {\n    \"ID\": 3,\n    \"Type\": \"How does it work\",\n    \"Name_Section\": \"How_2\",\n    \"Short_Description\": \"Split layout with image on one side and vertically scrolling steps on the other. Each step presents a headline, supporting text, and optional CTA. Ideal for Analytical and High-O personas seeking detailed, visually guided explanations.\",\n    \"Tags\": \"#how, #split_layout, #process_steps, #visual_storytelling, #educational, #mid_funnel, #for_high_O, #for_analytical\",\n    \"Variable_Text\": \"[\\n    {\\n      \\\"variable\\\": \\\"how_headline_1\\\",\\n      \\\"instruction\\\": \\\"Opening headline for step one. Should introduce the first core idea or benefit in a clear and engaging way.\\\",\\n      \\\"max_length\\\": 60\\n    },\\n    {\\n      \\\"variable\\\": \\\"how_subtext_1\\\",\\n      \\\"instruction\\\": \\\"Short explanatory sentence expanding on step one’s headline, providing context or reason why it matters.\\\",\\n      \\\"max_length\\\": 120\\n    },\\n    {\\n      \\\"variable\\\": \\\"how_button_1\\\",\\n      \\\"instruction\\\": \\\"Optional short call-to-action for step one, encouraging the visitor to engage further.\\\",\\n      \\\"max_length\\\": 25\\n    },\\n    {\\n      \\\"variable\\\": \\\"how_headline_2\\\",\\n      \\\"instruction\\\": \\\"Headline for step two, introducing the second key point or feature.\\\",\\n      \\\"max_length\\\": 60\\n    },\\n    {\\n      \\\"variable\\\": \\\"how_subtext_2\\\",\\n      \\\"instruction\\\": \\\"Short explanatory sentence expanding on step two’s headline.\\\",\\n      \\\"max_length\\\": 120\\n    },\\n    {\\n      \\\"variable\\\": \\\"how_button_2\\\",\\n      \\\"instruction\\\": \\\"Optional short call-to-action for step two.\\\",\\n      \\\"max_length\\\": 25\\n    },\\n    {\\n      \\\"variable\\\": \\\"how_headline_3\\\",\\n      \\\"instruction\\\": \\\"Headline for step three, presenting the third main benefit or insight.\\\",\\n      \\\"max_length\\\": 60\\n    },\\n    {\\n      \\\"variable\\\": \\\"how_subtext_3\\\",\\n      \\\"instruction\\\": \\\"Short explanatory sentence expanding on step three’s headline.\\\",\\n      \\\"max_length\\\": 120\\n    },\\n    {\\n      \\\"variable\\\": \\\"how_button_3\\\",\\n      \\\"instruction\\\": \\\"Optional short call-to-action for step three.\\\",\\n      \\\"max_length\\\": 25\\n    },\\n    {\\n      \\\"variable\\\": \\\"how_headline_4\\\",\\n      \\\"instruction\\\": \\\"Final headline or conclusion statement that summarizes the section’s value.\\\",\\n      \\\"max_length\\\": 60\\n    },\\n    {\\n      \\\"variable\\\": \\\"how_subtext_4\\\",\\n      \\\"instruction\\\": \\\"Closing sentence that reinforces trust and motivates the visitor to proceed.\\\",\\n      \\\"max_length\\\": 120\\n    }\\n  ]\\n}\"\n  },\n  {\n    \"ID\": 20,\n    \"Type\": \"CTA\",\n    \"Name_Section\": \"CTA_1\",\n    \"Short_Description\": \"Minimalistic call-to-action with a single headline, short supporting text, and one prominent button to join the waiting list. No additional visuals or complex layout. Best for Impulsive and D-type personas who prefer quick, low-friction decisions.\",\n    \"Tags\": \"#cta, #simple_layout, #single_message, #direct_action, #top_funnel, #for_d, #for_impulsive\",\n    \"Variable_Text\": \"[\\n    {\\n      \\\"variable\\\": \\\"cta_headline\\\",\\n      \\\"instruction\\\": \\\"Main headline encouraging visitors to join the waiting list, focused on urgency and benefit.\\\",\\n      \\\"max_length\\\": 60\\n    },\\n    {\\n      \\\"variable\\\": \\\"cta_subtext\\\",\\n      \\\"instruction\\\": \\\"Short supporting sentence explaining the value of joining the waiting list.\\\",\\n      \\\"max_length\\\": 120\\n    },\\n    {\\n      \\\"variable\\\": \\\"cta_button_text\\\",\\n      \\\"instruction\\\": \\\"Clear and action-oriented button text prompting the visitor to join.\\\",\\n      \\\"max_length\\\": 25\\n    }\"\n  },\n  {\n    \"ID\": 19,\n    \"Type\": \"CTA\",\n    \"Name_Section\": \"CTA_2\",\n    \"Short_Description\": \"Expanded call-to-action with product mock-up and three benefit tags above the headline. Shows clear product interface and visual proof, plus a single join button. Best for Analytical and High-O personas who want to see proof and context before acting.\",\n    \"Tags\": \"#cta, #visual_demo, #benefit_tags, #product_proof, #mid_funnel, #for_high_O, #for_analytical\",\n    \"Variable_Text\": \"[\\n    {\\n      \\\"variable\\\": \\\"cta_benefit_1\\\",\\n      \\\"instruction\\\": \\\"Short label highlighting a first key benefit of joining the waiting list.\\\",\\n      \\\"max_length\\\": 25\\n    },\\n    {\\n      \\\"variable\\\": \\\"cta_benefit_2\\\",\\n      \\\"instruction\\\": \\\"Short label highlighting a second key benefit.\\\",\\n      \\\"max_length\\\": 25\\n    },\\n    {\\n      \\\"variable\\\": \\\"cta_benefit_3\\\",\\n      \\\"instruction\\\": \\\"Short label highlighting a third key benefit.\\\",\\n      \\\"max_length\\\": 25\\n    },\\n    {\\n      \\\"variable\\\": \\\"cta_headline\\\",\\n      \\\"instruction\\\": \\\"Main headline encouraging visitors to join the waiting list, focused on benefit and credibility.\\\",\\n      \\\"max_length\\\": 60\\n    },\\n    {\\n      \\\"variable\\\": \\\"cta_button_text\\\",\\n      \\\"instruction\\\": \\\"Clear and action-oriented button text prompting the visitor to join.\\\",\\n      \\\"max_length\\\": 25\\n    }\"\n  },\n  {\n    \"ID\": 18,\n    \"Type\": \"CTA\",\n    \"Name_Section\": \"CTA_3\",\n    \"Short_Description\": \"Simple CTA combined with a right-side step-by-step explanation of what happens after joining the waiting list (three steps with headlines and subtext). Good for S and Doubter personas who want reassurance and process clarity.\",\n    \"Tags\": \"#cta, #process_explainer, #three_step, #structured_journey, #mid_funnel, #for_s, #for_doubter\",\n    \"Variable_Text\": \"[\\n    {\\n      \\\"variable\\\": \\\"cta_headline\\\",\\n      \\\"instruction\\\": \\\"Main headline encouraging visitors to join the waiting list, emphasizing process clarity.\\\",\\n      \\\"max_length\\\": 60\\n    },\\n    {\\n      \\\"variable\\\": \\\"cta_subtext\\\",\\n      \\\"instruction\\\": \\\"Short supporting sentence explaining what happens after joining.\\\",\\n      \\\"max_length\\\": 120\\n    },\\n    {\\n      \\\"variable\\\": \\\"cta_button_text\\\",\\n      \\\"instruction\\\": \\\"Clear and action-oriented button text prompting the visitor to join.\\\",\\n      \\\"max_length\\\": 25\\n    },\\n    {\\n      \\\"variable\\\": \\\"cta_step_headline_1\\\",\\n      \\\"instruction\\\": \\\"Headline for step one in the post-signup process.\\\",\\n      \\\"max_length\\\": 40\\n    },\\n    {\\n      \\\"variable\\\": \\\"cta_step_subtext_1\\\",\\n      \\\"instruction\\\": \\\"Short description for step one in the process.\\\",\\n      \\\"max_length\\\": 80\\n    },\\n    {\\n      \\\"variable\\\": \\\"cta_step_headline_2\\\",\\n      \\\"instruction\\\": \\\"Headline for step two in the post-signup process.\\\",\\n      \\\"max_length\\\": 40\\n    },\\n    {\\n      \\\"variable\\\": \\\"cta_step_subtext_2\\\",\\n      \\\"instruction\\\": \\\"Short description for step two in the process.\\\",\\n      \\\"max_length\\\": 80\\n    },\\n    {\\n      \\\"variable\\\": \\\"cta_step_headline_3\\\",\\n      \\\"instruction\\\": \\\"Headline for step three in the post-signup process.\\\",\\n      \\\"max_length\\\": 40\\n    },\\n    {\\n      \\\"variable\\\": \\\"cta_step_subtext_3\\\",\\n      \\\"instruction\\\": \\\"Short description for step three in the process.\\\",\\n      \\\"max_length\\\": 80\\n    }\"\n  },\n  {\n    \"ID\": 4,\n    \"Type\": \"CTA\",\n    \"Name_Section\": \"CTA_4\",\n    \"Short_Description\": \"CTA that combines step-by-step explanation of post-waiting-list process with a visual product mock-up. Balances reassurance (process) with proof (visual). Suitable for Analytical and High-O personas who need both clarity and evidence.\",\n    \"Tags\": \"#cta, #process_explainer, #three_step, #product_demo, #trust_proof, #mid_funnel, #for_high_O, #for_analytical\",\n    \"Variable_Text\": \"[\\n    {\\n      \\\"variable\\\": \\\"cta_headline\\\",\\n      \\\"instruction\\\": \\\"Main headline encouraging visitors to join the waiting list, combining process and proof.\\\",\\n      \\\"max_length\\\": 60\\n    },\\n    {\\n      \\\"variable\\\": \\\"cta_subtext\\\",\\n      \\\"instruction\\\": \\\"Short supporting sentence explaining both the process and the product benefit.\\\",\\n      \\\"max_length\\\": 120\\n    },\\n    {\\n      \\\"variable\\\": \\\"cta_button_text\\\",\\n      \\\"instruction\\\": \\\"Clear and action-oriented button text prompting the visitor to join.\\\",\\n      \\\"max_length\\\": 25\\n    },\\n    {\\n      \\\"variable\\\": \\\"cta_step_headline_1\\\",\\n      \\\"instruction\\\": \\\"Headline for step one in the post-signup process.\\\",\\n      \\\"max_length\\\": 40\\n    },\\n    {\\n      \\\"variable\\\": \\\"cta_step_subtext_1\\\",\\n      \\\"instruction\\\": \\\"Short description for step one in the process.\\\",\\n      \\\"max_length\\\": 80\\n    },\\n    {\\n      \\\"variable\\\": \\\"cta_step_headline_2\\\",\\n      \\\"instruction\\\": \\\"Headline for step two in the post-signup process.\\\",\\n      \\\"max_length\\\": 40\\n    },\\n    {\\n      \\\"variable\\\": \\\"cta_step_subtext_2\\\",\\n      \\\"instruction\\\": \\\"Short description for step two in the process.\\\",\\n      \\\"max_length\\\": 80\\n    },\\n    {\\n      \\\"variable\\\": \\\"cta_step_headline_3\\\",\\n      \\\"instruction\\\": \\\"Headline for step three in the post-signup process.\\\",\\n      \\\"max_length\\\": 40\\n    },\\n    {\\n      \\\"variable\\\": \\\"cta_step_subtext_3\\\",\\n      \\\"instruction\\\": \\\"Short description for step three in the process.\\\",\\n      \\\"max_length\\\": 80\\n    }\"\n  },\n  {\n    \"ID\": 21,\n    \"Type\": \"Testimonial\",\n    \"Name_Section\": \"Testimonial_1\",\n    \"Short_Description\": \"Testimonial section from the beta community, featuring profile images, a headline indicating the source, a persona-relevant quote, and the job title of the person quoted. Concludes with a small counter showing the number of people on the waiting list. Designed to build trust and social proof for cautious or validation-seeking personas before committing.\",\n    \"Tags\": \"#testimonial, #social_proof, #beta_community, #quote_block, #trust_builder, #mid_funnel, #for_s, #for_doubter\",\n    \"Variable_Text\": \"[\\n  {\\n    \\\"variable\\\": \\\"testimonial_headline\\\",\\n    \\\"instruction\\\": \\\"Headline introducing the testimonial and making clear from whom the quote is coming from the community, aligned to the target audience.\\\",\\n    \\\"max_length\\\": 60\\n  },\\n  {\\n    \\\"variable\\\": \\\"testimonial_quote\\\",\\n    \\\"instruction\\\": \\\"A compelling quote aligned to the visitor's persona, conveying trust, satisfaction, or success.\\\",\\n    \\\"max_length\\\": 180\\n  },\\n  {\\n    \\\"variable\\\": \\\"testimonial_job_title\\\",\\n    \\\"instruction\\\": \\\"Job title of the person quoted, matched to the target lead's role or industry.\\\",\\n    \\\"max_length\\\": 40\\n  },\\n  {\\n    \\\"variable\\\": \\\"testimonial_number\\\",\\n    \\\"instruction\\\": \\\"A random integer between 1 and 100 representing the number of people on the waiting list.\\\",\\n    \\\"max_length\\\": 3\\n  }\\n]\"\n  },\n  {\n    \"ID\": 5,\n    \"Type\": \"FAQ\",\n    \"Name_Section\": \"FAQ_1\",\n    \"Short_Description\": \"Simple FAQ layout with a clear headline, short introductory text, and a statement explaining the source of the questions (e.g., from beta community). Encourages the visitor to ask their own question. Designed for S and Doubter personas who value transparency and want to know the origin of the information.\",\n    \"Tags\": \"#faq, #simple_layout, #question_source, #transparency, #trust, #mid_funnel, #for_s, #for_doubter\",\n    \"Variable_Text\": \"[\\n  {\\n    \\\"variable\\\": \\\"faq_headline\\\",\\n    \\\"instruction\\\": \\\"Main headline introducing the FAQ section in an engaging way.\\\",\\n    \\\"max_length\\\": 60\\n  },\\n  {\\n    \\\"variable\\\": \\\"faq_subtext\\\",\\n    \\\"instruction\\\": \\\"Short supporting sentence explaining the purpose of the FAQ.\\\",\\n    \\\"max_length\\\": 120\\n  },\\n  {\\n    \\\"variable\\\": \\\"faq_source_statement\\\",\\n    \\\"instruction\\\": \\\"Statement explaining where the FAQ questions come from.\\\",\\n    \\\"max_length\\\": 80\\n  },\\n  {\\n    \\\"variable\\\": \\\"faq_question_1\\\",\\n    \\\"instruction\\\": \\\"First frequently asked question, relevant to the target audience.\\\",\\n    \\\"max_length\\\": 80\\n  },\\n  {\\n    \\\"variable\\\": \\\"faq_answer_1\\\",\\n    \\\"instruction\\\": \\\"Answer to the first frequently asked question.\\\",\\n    \\\"max_length\\\": 180\\n  },\\n  {\\n    \\\"variable\\\": \\\"faq_question_2\\\",\\n    \\\"instruction\\\": \\\"Second frequently asked question.\\\",\\n    \\\"max_length\\\": 80\\n  },\\n  {\\n    \\\"variable\\\": \\\"faq_answer_2\\\",\\n    \\\"instruction\\\": \\\"Answer to the second frequently asked question.\\\",\\n    \\\"max_length\\\": 180\\n  },\\n  {\\n    \\\"variable\\\": \\\"faq_question_3\\\",\\n    \\\"instruction\\\": \\\"Third frequently asked question.\\\",\\n    \\\"max_length\\\": 80\\n  },\\n  {\\n    \\\"variable\\\": \\\"faq_answer_3\\\",\\n    \\\"instruction\\\": \\\"Answer to the third frequently asked question.\\\",\\n    \\\"max_length\\\": 180\\n  },\\n  {\\n    \\\"variable\\\": \\\"faq_question_4\\\",\\n    \\\"instruction\\\": \\\"Fourth frequently asked question.\\\",\\n    \\\"max_length\\\": 80\\n  },\\n  {\\n    \\\"variable\\\": \\\"faq_answer_4\\\",\\n    \\\"instruction\\\": \\\"Answer to the fourth frequently asked question.\\\",\\n    \\\"max_length\\\": 180\\n  }\\n]\"\n  },\n  {\n    \"ID\": 22,\n    \"Type\": \"FAQ\",\n    \"Name_Section\": \"FAQ_2\",\n    \"Short_Description\": \"FAQ layout integrated with a waiting list sign-up trigger. Questions and answers are dynamically tailored to the persona, lead profile, and industry. Best for Analytical and High-O personas who need specific relevance to act.\",\n    \"Tags\": \"#faq, #waitinglist_trigger, #personalized_content, #industry_specific, #conversion_focus, #mid_funnel, #for_high_O, #for_analytical\",\n    \"Variable_Text\": \"[\\n  {\\n    \\\"variable\\\": \\\"faq_headline\\\",\\n    \\\"instruction\\\": \\\"Main headline introducing the FAQ section, replacing 'Frequently Asked Questions'.\\\",\\n    \\\"max_length\\\": 60\\n  },\\n  {\\n    \\\"variable\\\": \\\"faq_subtext\\\",\\n    \\\"instruction\\\": \\\"Short supporting sentence describing the FAQ’s purpose and persona relevance.\\\",\\n    \\\"max_length\\\": 120\\n  },\\n  {\\n    \\\"variable\\\": \\\"faq_question_1\\\",\\n    \\\"instruction\\\": \\\"First frequently asked question, adapted to persona and industry.\\\",\\n    \\\"max_length\\\": 80\\n  },\\n  {\\n    \\\"variable\\\": \\\"faq_answer_1\\\",\\n    \\\"instruction\\\": \\\"Answer to the first question, tailored to persona and lead profile.\\\",\\n    \\\"max_length\\\": 180\\n  },\\n  {\\n    \\\"variable\\\": \\\"faq_question_2\\\",\\n    \\\"instruction\\\": \\\"Second question, adapted to persona and industry.\\\",\\n    \\\"max_length\\\": 80\\n  },\\n  {\\n    \\\"variable\\\": \\\"faq_answer_2\\\",\\n    \\\"instruction\\\": \\\"Answer to the second question.\\\",\\n    \\\"max_length\\\": 180\\n  },\\n  {\\n    \\\"variable\\\": \\\"faq_question_3\\\",\\n    \\\"instruction\\\": \\\"Third question.\\\",\\n    \\\"max_length\\\": 80\\n  },\\n  {\\n    \\\"variable\\\": \\\"faq_answer_3\\\",\\n    \\\"instruction\\\": \\\"Answer to the third question.\\\",\\n    \\\"max_length\\\": 180\\n  },\\n  {\\n    \\\"variable\\\": \\\"faq_question_4\\\",\\n    \\\"instruction\\\": \\\"Fourth question.\\\",\\n    \\\"max_length\\\": 80\\n  },\\n  {\\n    \\\"variable\\\": \\\"faq_answer_4\\\",\\n    \\\"instruction\\\": \\\"Answer to the fourth question.\\\",\\n    \\\"max_length\\\": 180\\n  }\\n]\"\n  },\n  {\n    \"ID\": 23,\n    \"Type\": \"FAQ\",\n    \"Name_Section\": \"FAQ_3\",\n    \"Short_Description\": \"Visually enhanced FAQ with waiting list CTA and a source quote explaining where the questions originate. Combines reassurance (question origin) with a strong conversion push (CTA). Ideal for S, Doubter, and Analytical personas who respond well to trust + action prompts.\",\n    \"Tags\": \"#faq, #visual_cta, #question_source, #trust_and_conversion, #mid_funnel, #for_s, #for_doubter, #for_analytical\",\n    \"Variable_Text\": \"[\\n  {\\n    \\\"variable\\\": \\\"faq_headline\\\",\\n    \\\"instruction\\\": \\\"Main headline introducing the FAQ section, replacing 'Frequently Asked Questions'.\\\",\\n    \\\"max_length\\\": 60\\n  },\\n  {\\n    \\\"variable\\\": \\\"faq_subtext\\\",\\n    \\\"instruction\\\": \\\"Short supporting sentence explaining the purpose of the FAQ.\\\",\\n    \\\"max_length\\\": 120\\n  },\\n  {\\n    \\\"variable\\\": \\\"faq_source_statement\\\",\\n    \\\"instruction\\\": \\\"Statement explaining where the FAQ questions come from.\\\",\\n    \\\"max_length\\\": 80\\n  },\\n  {\\n    \\\"variable\\\": \\\"cta_headline\\\",\\n    \\\"instruction\\\": \\\"Headline for the waiting list call-to-action, replacing 'Join the waiting list now'.\\\",\\n    \\\"max_length\\\": 60\\n  },\\n  {\\n    \\\"variable\\\": \\\"faq_question_1\\\",\\n    \\\"instruction\\\": \\\"First frequently asked question.\\\",\\n    \\\"max_length\\\": 80\\n  },\\n  {\\n    \\\"variable\\\": \\\"faq_answer_1\\\",\\n    \\\"instruction\\\": \\\"Answer to the first frequently asked question.\\\",\\n    \\\"max_length\\\": 180\\n  },\\n  {\\n    \\\"variable\\\": \\\"faq_question_2\\\",\\n    \\\"instruction\\\": \\\"Second question.\\\",\\n    \\\"max_length\\\": 80\\n  },\\n  {\\n    \\\"variable\\\": \\\"faq_answer_2\\\",\\n    \\\"instruction\\\": \\\"Answer to the second question.\\\",\\n    \\\"max_length\\\": 180\\n  },\\n  {\\n    \\\"variable\\\": \\\"faq_question_3\\\",\\n    \\\"instruction\\\": \\\"Third question.\\\",\\n    \\\"max_length\\\": 80\\n  },\\n  {\\n    \\\"variable\\\": \\\"faq_answer_3\\\",\\n    \\\"instruction\\\": \\\"Answer to the third question.\\\",\\n    \\\"max_length\\\": 180\\n  },\\n  {\\n    \\\"variable\\\": \\\"faq_question_4\\\",\\n    \\\"instruction\\\": \\\"Fourth question.\\\",\\n    \\\"max_length\\\": 80\\n  },\\n  {\\n    \\\"variable\\\": \\\"faq_answer_4\\\",\\n    \\\"instruction\\\": \\\"Answer to the fourth question.\\\",\\n    \\\"max_length\\\": 180\\n  }\\n]\"\n  },\n  {\n    \"ID\": 6,\n    \"Type\": \"Problem\",\n    \"Name_Section\": \"Problem_1\",\n    \"Short_Description\": \"Visual representation of the current marketing flow that fails — ending on a static landing page. The right-hand mock-up clearly shows the inefficiency. The text is short, focusing on three key bullet points that highlight the core issues. More visual-led than copy-heavy, designed for quick recognition\",\n    \"Tags\": \"#problem_section, #visual_focus, #current_flow_issue, #static_page, #short_copy, #for_visual_persona, #for_impulsive\",\n    \"Variable_Text\": \"[\\n  {\\n    \\\"variable\\\": \\\"problem_headline\\\",\\n    \\\"instruction\\\": \\\"Main headline highlighting the core problem with the current flow, emphasizing the inefficiency of static pages.\\\",\\n    \\\"max_length\\\": 60\\n  },\\n  {\\n    \\\"variable\\\": \\\"problem_bullet_1\\\",\\n    \\\"instruction\\\": \\\"Short sentence describing the first major issue in the current process.\\\",\\n    \\\"max_length\\\": 60\\n  },\\n  {\\n    \\\"variable\\\": \\\"problem_bullet_2\\\",\\n    \\\"instruction\\\": \\\"Short sentence describing the second major issue in the current process.\\\",\\n    \\\"max_length\\\": 60\\n  },\\n  {\\n    \\\"variable\\\": \\\"problem_bullet_3\\\",\\n    \\\"instruction\\\": \\\"Short sentence describing the third major issue in the current process.\\\",\\n    \\\"max_length\\\": 60\\n  }\\n]\"\n  },\n  {\n    \"ID\": 24,\n    \"Type\": \"Problem\",\n    \"Name_Section\": \"Problem_2\",\n    \"Short_Description\": \"Text-based explanation of the problems in the current processes. Four clear problem blocks with subtext that make the pain points tangible. On the right, a subtext block providing extra context. Ends with a “result” statement highlighting the negative consequences for the persona. Includes a “Learn More” button linked to the waiting list.\",\n    \"Tags\": \"#problem_section, #text_focus, #detailed_explainer, #structured_problems, #result_statement, #cta_learn_more, #for_analytical, #for_doubter\",\n    \"Variable_Text\": \"[\\n  {\\n    \\\"variable\\\": \\\"problem_headline\\\",\\n    \\\"instruction\\\": \\\"Main headline summarizing the core issue in the current process.\\\",\\n    \\\"max_length\\\": 60\\n  },\\n  {\\n    \\\"variable\\\": \\\"problem_subtext\\\",\\n    \\\"instruction\\\": \\\"Short explanatory paragraph placed near the headline to provide context for the problem.\\\",\\n    \\\"max_length\\\": 120\\n  },\\n  {\\n    \\\"variable\\\": \\\"problem_block_headline_1\\\",\\n    \\\"instruction\\\": \\\"Headline for the first specific problem.\\\",\\n    \\\"max_length\\\": 40\\n  },\\n  {\\n    \\\"variable\\\": \\\"problem_block_subtext_1\\\",\\n    \\\"instruction\\\": \\\"Short explanation for the first problem.\\\",\\n    \\\"max_length\\\": 80\\n  },\\n  {\\n    \\\"variable\\\": \\\"problem_block_headline_2\\\",\\n    \\\"instruction\\\": \\\"Headline for the second specific problem.\\\",\\n    \\\"max_length\\\": 40\\n  },\\n  {\\n    \\\"variable\\\": \\\"problem_block_subtext_2\\\",\\n    \\\"instruction\\\": \\\"Short explanation for the second problem.\\\",\\n    \\\"max_length\\\": 80\\n  },\\n  {\\n    \\\"variable\\\": \\\"problem_block_headline_3\\\",\\n    \\\"instruction\\\": \\\"Headline for the third specific problem.\\\",\\n    \\\"max_length\\\": 40\\n  },\\n  {\\n    \\\"variable\\\": \\\"problem_block_subtext_3\\\",\\n    \\\"instruction\\\": \\\"Short explanation for the third problem.\\\",\\n    \\\"max_length\\\": 80\\n  },\\n  {\\n    \\\"variable\\\": \\\"problem_block_headline_4\\\",\\n    \\\"instruction\\\": \\\"Headline for the fourth specific problem.\\\",\\n    \\\"max_length\\\": 40\\n  },\\n  {\\n    \\\"variable\\\": \\\"problem_block_subtext_4\\\",\\n    \\\"instruction\\\": \\\"Short explanation for the fourth problem.\\\",\\n    \\\"max_length\\\": 80\\n  },\\n  {\\n    \\\"variable\\\": \\\"problem_result_statement\\\",\\n    \\\"instruction\\\": \\\"One-sentence result statement explaining the negative impact of these problems.\\\",\\n    \\\"max_length\\\": 100\\n  }\\n]\"\n  },\n  {\n    \"ID\": 25,\n    \"Type\": \"Problem\",\n    \"Name_Section\": \"Problem_3\",\n    \"Short_Description\": \"Highly visual and emotional presentation of the issues, paired with a human image conveying frustration. Four short problem blocks with subtext and labels that present negative statistics as proof. Ends with a clear “result” statement outlining the consequences of the problem.\\n\\n\",\n    \"Tags\": \"#problem_section, #visual_emotion, #human_element, #statistical_proof, #structured_problems, #result_statement, #for_emotional, #for_s\",\n    \"Variable_Text\": \"[\\n  {\\n    \\\"variable\\\": \\\"problem_headline\\\",\\n    \\\"instruction\\\": \\\"Main headline summarizing the core issue, written to create an emotional connection with the viewer.\\\",\\n    \\\"max_length\\\": 60\\n  },\\n  {\\n    \\\"variable\\\": \\\"problem_block_headline_1\\\",\\n    \\\"instruction\\\": \\\"Headline for the first problem, matched with a supporting stat or visual label.\\\",\\n    \\\"max_length\\\": 40\\n  },\\n  {\\n    \\\"variable\\\": \\\"problem_block_subtext_1\\\",\\n    \\\"instruction\\\": \\\"Short explanation for the first problem.\\\",\\n    \\\"max_length\\\": 80\\n  },\\n  {\\n    \\\"variable\\\": \\\"problem_block_headline_2\\\",\\n    \\\"instruction\\\": \\\"Headline for the second problem, matched with a supporting stat or visual label.\\\",\\n    \\\"max_length\\\": 40\\n  },\\n  {\\n    \\\"variable\\\": \\\"problem_block_subtext_2\\\",\\n    \\\"instruction\\\": \\\"Short explanation for the second problem.\\\",\\n    \\\"max_length\\\": 80\\n  },\\n  {\\n    \\\"variable\\\": \\\"problem_block_headline_3\\\",\\n    \\\"instruction\\\": \\\"Headline for the third problem, matched with a supporting stat or visual label.\\\",\\n    \\\"max_length\\\": 40\\n  },\\n  {\\n    \\\"variable\\\": \\\"problem_block_subtext_3\\\",\\n    \\\"instruction\\\": \\\"Short explanation for the third problem.\\\",\\n    \\\"max_length\\\": 80\\n  },\\n  {\\n    \\\"variable\\\": \\\"problem_block_headline_4\\\",\\n    \\\"instruction\\\": \\\"Headline for the fourth problem, matched with a supporting stat or visual label.\\\",\\n    \\\"max_length\\\": 40\\n  },\\n  {\\n    \\\"variable\\\": \\\"problem_block_subtext_4\\\",\\n    \\\"instruction\\\": \\\"Short explanation for the fourth problem.\\\",\\n    \\\"max_length\\\": 80\\n  },\\n  {\\n    \\\"variable\\\": \\\"problem_result_statement\\\",\\n    \\\"instruction\\\": \\\"One-sentence result statement explaining the negative impact of these problems.\\\",\\n    \\\"max_length\\\": 100\\n  }\\n]\"\n  },\n  {\n    \"ID\": 7,\n    \"Type\": \"Information \",\n    \"Name_Section\": \"Informaton_1\",\n    \"Short_Description\": \"Text-first layout introducing three key feature or benefit blocks relevant to the lead. The focus is on delivering quick, high-value insights that might influence decision-making. Ideal for personas who prefer scanning structured, informative content before engaging further.\",\n    \"Tags\": \"#information, #feature_highlight, #for_analytical, #for_high_O, #mid_funnel\",\n    \"Variable_Text\": \"[\\n  {\\n    \\\"variable\\\": \\\"info_headline\\\",\\n    \\\"instruction\\\": \\\"Main headline summarizing why this information is important to the lead.\\\",\\n    \\\"max_length\\\": 60\\n  },\\n  {\\n    \\\"variable\\\": \\\"info_subtext\\\",\\n    \\\"instruction\\\": \\\"Short sentence providing context for the information presented.\\\",\\n    \\\"max_length\\\": 120\\n  },\\n  {\\n    \\\"variable\\\": \\\"info_block_title_1\\\",\\n    \\\"instruction\\\": \\\"Title for the first information block, highlighting a relevant feature or benefit.\\\",\\n    \\\"max_length\\\": 40\\n  },\\n  {\\n    \\\"variable\\\": \\\"info_block_subtext_1\\\",\\n    \\\"instruction\\\": \\\"Short description expanding on the first information block.\\\",\\n    \\\"max_length\\\": 80\\n  },\\n  {\\n    \\\"variable\\\": \\\"info_block_title_2\\\",\\n    \\\"instruction\\\": \\\"Title for the second information block.\\\",\\n    \\\"max_length\\\": 40\\n  },\\n  {\\n    \\\"variable\\\": \\\"info_block_subtext_2\\\",\\n    \\\"instruction\\\": \\\"Short description expanding on the second information block.\\\",\\n    \\\"max_length\\\": 80\\n  },\\n  {\\n    \\\"variable\\\": \\\"info_block_title_3\\\",\\n    \\\"instruction\\\": \\\"Title for the third information block.\\\",\\n    \\\"max_length\\\": 40\\n  },\\n  {\\n    \\\"variable\\\": \\\"info_block_subtext_3\\\",\\n    \\\"instruction\\\": \\\"Short description expanding on the third information block.\\\",\\n    \\\"max_length\\\": 80\\n  }\\n]\"\n  },\n  {\n    \"ID\": 26,\n    \"Type\": \"Information \",\n    \"Name_Section\": \"Informaton_2\",\n    \"Short_Description\": \"Feature-focused layout with three information blocks and a strong button CTA promoting the product’s unique selling point. Includes a visual that reinforces the result or benefit. Works well for personas motivated by proof and performance indicators.\",\n    \"Tags\": \"#information, #visual_proof, #usp_highlight, #for_d, #for_impulsive, #mid_funnel\",\n    \"Variable_Text\": \"[\\n  {\\n    \\\"variable\\\": \\\"info_block_title_1\\\",\\n    \\\"instruction\\\": \\\"Title for the first feature block.\\\",\\n    \\\"max_length\\\": 40\\n  },\\n  {\\n    \\\"variable\\\": \\\"info_block_subtext_1\\\",\\n    \\\"instruction\\\": \\\"Short description for the first feature block.\\\",\\n    \\\"max_length\\\": 80\\n  },\\n  {\\n    \\\"variable\\\": \\\"info_block_title_2\\\",\\n    \\\"instruction\\\": \\\"Title for the second feature block.\\\",\\n    \\\"max_length\\\": 40\\n  },\\n  {\\n    \\\"variable\\\": \\\"info_block_subtext_2\\\",\\n    \\\"instruction\\\": \\\"Short description for the second feature block.\\\",\\n    \\\"max_length\\\": 80\\n  },\\n  {\\n    \\\"variable\\\": \\\"info_block_title_3\\\",\\n    \\\"instruction\\\": \\\"Title for the third feature block.\\\",\\n    \\\"max_length\\\": 40\\n  },\\n  {\\n    \\\"variable\\\": \\\"info_block_subtext_3\\\",\\n    \\\"instruction\\\": \\\"Short description for the third feature block.\\\",\\n    \\\"max_length\\\": 80\\n  },\\n  {\\n    \\\"variable\\\": \\\"info_cta_button_text\\\",\\n    \\\"instruction\\\": \\\"Action-oriented button text that emphasizes the product’s unique selling point.\\\",\\n    \\\"max_length\\\": 25\\n  }\\n]\"\n  },\n  {\n    \"ID\": 27,\n    \"Type\": \"Information \",\n    \"Name_Section\": \"Informaton_3\",\n    \"Short_Description\": \"Explains integration capability with multiple tools and emphasizes that the product complements, rather than replaces, existing systems. Supported by visual representation of recognizable tool logos. Appeals to cautious personas who value compatibility and reduced risk.\\n\",\n    \"Tags\": \"#information, #integration_friendly, #risk_reduction, #for_s, #for_doubter, #mid_funnel\",\n    \"Variable_Text\": \"[\\n  {\\n    \\\"variable\\\": \\\"info_headline\\\",\\n    \\\"instruction\\\": \\\"Main headline highlighting compatibility with existing tools.\\\",\\n    \\\"max_length\\\": 60\\n  },\\n  {\\n    \\\"variable\\\": \\\"info_subtext\\\",\\n    \\\"instruction\\\": \\\"Short explanation reinforcing the product’s role as an enhancer, not a replacement.\\\",\\n    \\\"max_length\\\": 120\\n  },\\n  {\\n    \\\"variable\\\": \\\"info_block_title_1\\\",\\n    \\\"instruction\\\": \\\"Title for the first integration feature or benefit.\\\",\\n    \\\"max_length\\\": 40\\n  },\\n  {\\n    \\\"variable\\\": \\\"info_block_subtext_1\\\",\\n    \\\"instruction\\\": \\\"Short description for the first integration feature.\\\",\\n    \\\"max_length\\\": 80\\n  },\\n  {\\n    \\\"variable\\\": \\\"info_block_title_2\\\",\\n    \\\"instruction\\\": \\\"Title for the second integration feature.\\\",\\n    \\\"max_length\\\": 40\\n  },\\n  {\\n    \\\"variable\\\": \\\"info_block_subtext_2\\\",\\n    \\\"instruction\\\": \\\"Short description for the second integration feature.\\\",\\n    \\\"max_length\\\": 80\\n  },\\n  {\\n    \\\"variable\\\": \\\"info_block_title_3\\\",\\n    \\\"instruction\\\": \\\"Title for the third integration feature.\\\",\\n    \\\"max_length\\\": 40\\n  },\\n  {\\n    \\\"variable\\\": \\\"info_block_subtext_3\\\",\\n    \\\"instruction\\\": \\\"Short description for the third integration feature.\\\",\\n    \\\"max_length\\\": 80\\n  }\\n]\"\n  },\n  {\n    \"ID\": 28,\n    \"Type\": \"Information \",\n    \"Name_Section\": \"Informaton_4\",\n    \"Short_Description\": \"Strong visual section featuring a human subject alongside statistical highlights, aimed at building trust and showing measurable results. Balanced mix of emotional connection and performance proof, suitable for both emotional and analytical personas.\",\n    \"Tags\": \"#information, #visual_with_stats, #trust_and_proof, #for_high_O, #for_trust, #mid_funnel\",\n    \"Variable_Text\": \"[\\n  {\\n    \\\"variable\\\": \\\"info_headline\\\",\\n    \\\"instruction\\\": \\\"Main headline summarizing the key value supported by the stats.\\\",\\n    \\\"max_length\\\": 60\\n  },\\n  {\\n    \\\"variable\\\": \\\"info_subtext\\\",\\n    \\\"instruction\\\": \\\"Supporting sentence that provides context to the stats and builds trust.\\\",\\n    \\\"max_length\\\": 120\\n  },\\n  {\\n    \\\"variable\\\": \\\"info_block_subtext_1\\\",\\n    \\\"instruction\\\": \\\"Short statistical or factual point supporting the main message.\\\",\\n    \\\"max_length\\\": 40\\n  },\\n  {\\n    \\\"variable\\\": \\\"info_block_subtext_2\\\",\\n    \\\"instruction\\\": \\\"Second statistical or factual point supporting the message.\\\",\\n    \\\"max_length\\\": 40\\n  },\\n  {\\n    \\\"variable\\\": \\\"info_block_subtext_3\\\",\\n    \\\"instruction\\\": \\\"Third statistical or factual point supporting the message.\\\",\\n    \\\"max_length\\\": 40\\n  }\\n]\"\n  },\n  {\n    \"ID\": 8,\n    \"Type\": \"Hero Section\",\n    \"Name_Section\": \"Hero_2\",\n    \"Short_Description\": \"Description: Focused on direct action and urgency. Includes an email form, countdown, and product preview to trigger quick sign-ups. Works well for decisive and action-oriented personas.\",\n    \"Tags\": \"#hero, #direct_action, #urgency_trigger, #countdown, #cta_first\",\n    \"Variable_Text\": \"[\\n  {\\n    \\\"variable\\\": \\\"info_headline\\\",\\n    \\\"instruction\\\": \\\"Main headline summarizing the key value supported by the stats.\\\",\\n    \\\"max_length\\\": 60\\n  },\\n  {\\n    \\\"variable\\\": \\\"info_subtext\\\",\\n    \\\"instruction\\\": \\\"Supporting sentence that provides context to the stats and builds trust.\\\",\\n    \\\"max_length\\\": 120\\n  },\\n  {\\n    \\\"variable\\\": \\\"info_block_subtext_1\\\",\\n    \\\"instruction\\\": \\\"Short statistical or factual point supporting the main message.\\\",\\n    \\\"max_length\\\": 40\\n  },\\n  {\\n    \\\"variable\\\": \\\"info_block_subtext_2\\\",\\n    \\\"instruction\\\": \\\"Second statistical or factual point supporting the message.\\\",\\n    \\\"max_length\\\": 40\\n  },\\n  {\\n    \\\"variable\\\": \\\"info_block_subtext_3\\\",\\n    \\\"instruction\\\": \\\"Third statistical or factual point supporting the message.\\\",\\n    \\\"max_length\\\": 40\\n  }\\n]\"\n  },\n  {\n    \"ID\": 9,\n    \"Type\": \"Hero Section\",\n    \"Name_Section\": \"Hero_3\",\n    \"Short_Description\": \"Highly visual hero explaining how the system works through product imagery and workflow representation. Ideal for visual learners or open-minded personas who value clarity and conceptual overviews.\",\n    \"Tags\": \"#hero, #visual_explainer, #system_overview, #for_visual, #for_open_minded\",\n    \"Variable_Text\": \"[\\n  {\\n    \\\"variable\\\": \\\"hero_headline_1\\\",\\n    \\\"instruction\\\": \\\"Clear headline that communicates benefit of the product visually and conceptually.\\\",\\n    \\\"max_length\\\": 60\\n  },\\n  {\\n    \\\"variable\\\": \\\"hero_subtext_1\\\",\\n    \\\"instruction\\\": \\\"Expanded subtext that explains the visual or guides the user through the journey shown. Should connect to persona’s role and company context.\\\",\\n    \\\"max_length\\\": 160\\n  }\\n]\"\n  },\n  {\n    \"ID\": 10,\n    \"Type\": \"Hero Section\",\n    \"Name_Section\": \"Hero_4\",\n    \"Short_Description\": \"Human image, combined with soft quote and CTA — ideal for hesitant or high-Neuroticism personas who need both proof and clarity. uman image combined with a soft, reassuring quote and a CTA. Ideal for hesitant or high-Neuroticism personas who need emotional reassurance alongside clear proof.\",\n    \"Tags\": \"#hero, #human_focus, #soft_quote, #emotional_reassurance, #for_hesitant\",\n    \"Variable_Text\": \"[\\n  {\\n    \\\"variable\\\": \\\"hero_top_label\\\",\\n    \\\"instruction\\\": \\\"Small label or badge above the headline to indicate trust, insight or relevance.\\\",\\n    \\\"max_length\\\": 40\\n  },\\n  {\\n    \\\"variable\\\": \\\"hero_headline_1\\\",\\n    \\\"instruction\\\": \\\"Human-centric headline that focuses on the real-world application or relatable scenario.\\\",\\n    \\\"max_length\\\": 60\\n  },\\n  {\\n    \\\"variable\\\": \\\"hero_subtext_1\\\",\\n    \\\"instruction\\\": \\\"Soft but clear explanation that connects the user’s challenge with the product’s benefit.\\\",\\n    \\\"max_length\\\": 120\\n  },\\n  {\\n    \\\"variable\\\": \\\"hero_visitor_group_relevance\\\",\\n    \\\"instruction\\\": \\\"Subtext that states what % of users in the group have similar job titles or roles as the current visitor.\\\",\\n    \\\"max_length\\\": 60\\n  }\\n]\"\n  },\n  {\n    \"ID\": 11,\n    \"Type\": \"Hero Section\",\n    \"Name_Section\": \"Hero_5\",\n    \"Short_Description\": \"Human photo combined with live visitor data and client count, balancing credibility with relatability. Works well for socially driven personas who trust numbers and peer validation.\",\n    \"Tags\": \"#hero, #human_plus_data, #credibility_metrics, #social_proof, #balanced_appeal\",\n    \"Variable_Text\": \"[\\n  {\\n    \\\"variable\\\": \\\"hero_top_label\\\",\\n    \\\"instruction\\\": \\\"Subtle trust-inducing label above the headline. It should feel calm, confident and softly validating.\\\",\\n    \\\"max_length\\\": 40\\n  },\\n  {\\n    \\\"variable\\\": \\\"hero_headline_1\\\",\\n    \\\"instruction\\\": \\\"Headline that creates emotional trust or reliability — written to reassure cautious, skeptical or doubt-driven visitors.\\\",\\n    \\\"max_length\\\": 60\\n  },\\n  {\\n    \\\"variable\\\": \\\"hero_subtext_1\\\",\\n    \\\"instruction\\\": \\\"Gentle, descriptive sentence that lowers resistance and confirms this solution is proven and safe to try.\\\",\\n    \\\"max_length\\\": 120\\n  }\\n]\"\n  },\n  {\n    \"ID\": 12,\n    \"Type\": \"Hero Section\",\n    \"Name_Section\": \"Hero_6\",\n    \"Short_Description\": \"Headliner with statistics and a representation of the portal plus key performance metrics. Best for analytical and detail-focused personas who want to see tangible results up front.\",\n    \"Tags\": \"#hero, #data_driven, #analytics_focus, #portal_preview, #for_analytical\",\n    \"Variable_Text\": \"[\\n  {\\n    \\\"variable\\\": \\\"hero_top_label\\\",\\n    \\\"instruction\\\": \\\"Short logic-based label to introduce the page in a fact-driven, analytical tone.\\\",\\n    \\\"max_length\\\": 40\\n  },\\n  {\\n    \\\"variable\\\": \\\"hero_headline_1\\\",\\n    \\\"instruction\\\": \\\"Headline that implies evidence, performance or quantified improvement — written for analytical thinkers.\\\",\\n    \\\"max_length\\\": 60\\n  },\\n  {\\n    \\\"variable\\\": \\\"hero_subtext_1\\\",\\n    \\\"instruction\\\": \\\"Supporting text that frames what the visitor is about to discover — preferably rational, metric-based or grounded in outcomes.\\\",\\n    \\\"max_length\\\": 120\\n  }\\n]\"\n  },\n  {\n    \"ID\": 14,\n    \"Type\": \"How does it work\",\n    \"Name_Section\": \"How_3\",\n    \"Short_Description\": \"Two-column layout explaining three core functionalities of the concept, each with its own title and description. Accompanied by a visual mock-up of a personalized page with overlaid labels explaining what the tool has done. Designed to quickly communicate the main activities and show tangible output.\",\n    \"Tags\": \"#how, #split_layout, #feature_overview, #visual_demo, #labelled_explainer, #educational, #trust_proof, #mid_funnel, #for_high_O, #for_analytical  #result \",\n    \"Variable_Text\": \"[\\n    {\\n      \\\"variable\\\": \\\"how_headline_1\\\",\\n      \\\"instruction\\\": \\\"Main headline introducing the section, summarizing the purpose and value in one sentence.\\\",\\n      \\\"max_length\\\": 60\\n    },\\n    {\\n      \\\"variable\\\": \\\"how_subtext_1\\\",\\n      \\\"instruction\\\": \\\"Introductory paragraph explaining the section’s purpose and how the three functionalities fit into the product value.\\\",\\n      \\\"max_length\\\": 120\\n    },\\n    {\\n      \\\"variable\\\": \\\"how_button_1\\\",\\n      \\\"instruction\\\": \\\"Optional short call-to-action that invites the user to explore the features further.\\\",\\n      \\\"max_length\\\": 25\\n    },\\n    {\\n      \\\"variable\\\": \\\"how_headline_2\\\",\\n      \\\"instruction\\\": \\\"Title for the first main functionality, describing it in a concise and clear way.\\\",\\n      \\\"max_length\\\": 60\\n    },\\n    {\\n      \\\"variable\\\": \\\"how_subtext_2\\\",\\n      \\\"instruction\\\": \\\"One-sentence explanation of the first main functionality, focusing on its benefit to the user.\\\",\\n      \\\"max_length\\\": 120\\n    },\\n    {\\n      \\\"variable\\\": \\\"how_headline_3\\\",\\n      \\\"instruction\\\": \\\"Title for the second main functionality.\\\",\\n      \\\"max_length\\\": 60\\n    },\\n    {\\n      \\\"variable\\\": \\\"how_subtext_3\\\",\\n      \\\"instruction\\\": \\\"One-sentence explanation of the second main functionality.\\\",\\n      \\\"max_length\\\": 120\\n    },\\n    {\\n      \\\"variable\\\": \\\"how_headline_4\\\",\\n      \\\"instruction\\\": \\\"Title for the third main functionality.\\\",\\n      \\\"max_length\\\": 60\\n    },\\n    {\\n      \\\"variable\\\": \\\"how_subtext_4\\\",\\n      \\\"instruction\\\": \\\"One-sentence explanation of the third main functionality.\\\",\\n      \\\"max_length\\\": 120\\n    }\\n  ]\\n}\"\n  },\n  {\n    \"ID\": 15,\n    \"Type\": \"How does it work\",\n    \"Name_Section\": \"How_4\",\n    \"Short_Description\": \"Horizontal three-step process explanation, each step with its own title and description. Below the steps is a product interface visual showing how the tool is used to achieve results. Designed to combine a clear process narrative with a tangible product demonstration. Works well for Analytical and High-O personas who value clarity and tangible demonstrations.\",\n    \"Tags\": \"#how, #three_step, #process_flow, #horizontal_steps, #product_demo, #visual_proof, #educational, #mid_funnel, #for_high_O, #for_analytical\",\n    \"Variable_Text\": \"[\\n    {\\n      \\\"variable\\\": \\\"how_button_1\\\",\\n      \\\"instruction\\\": \\\"Optional call-to-action encouraging visitors to explore the process or try the product.\\\",\\n      \\\"max_length\\\": 25\\n    },\\n    {\\n      \\\"variable\\\": \\\"how_headline_1\\\",\\n      \\\"instruction\\\": \\\"Main headline introducing the section and its purpose.\\\",\\n      \\\"max_length\\\": 60\\n    },\\n    {\\n      \\\"variable\\\": \\\"how_subtext_1\\\",\\n      \\\"instruction\\\": \\\"Introductory sentence that explains the process and its value before detailing the steps.\\\",\\n      \\\"max_length\\\": 120\\n    },\\n    {\\n      \\\"variable\\\": \\\"how_headline_2\\\",\\n      \\\"instruction\\\": \\\"Title for step one in the process.\\\",\\n      \\\"max_length\\\": 50\\n    },\\n    {\\n      \\\"variable\\\": \\\"how_subtext_2\\\",\\n      \\\"instruction\\\": \\\"Description of step one, focusing on what happens and why it matters.\\\",\\n      \\\"max_length\\\": 90\\n    },\\n    {\\n      \\\"variable\\\": \\\"how_headline_3\\\",\\n      \\\"instruction\\\": \\\"Title for step two in the process.\\\",\\n      \\\"max_length\\\": 50\\n    },\\n    {\\n      \\\"variable\\\": \\\"how_subtext_3\\\",\\n      \\\"instruction\\\": \\\"Description of step two, focusing on what happens and why it matters.\\\",\\n      \\\"max_length\\\": 90\\n    },\\n    {\\n      \\\"variable\\\": \\\"how_headline_4\\\",\\n      \\\"instruction\\\": \\\"Title for step three in the process.\\\",\\n      \\\"max_length\\\": 50\\n    },\\n    {\\n      \\\"variable\\\": \\\"how_subtext_4\\\",\\n      \\\"instruction\\\": \\\"Description of step three, focusing on what happens and why it matters.\\\",\\n      \\\"max_length\\\": 90\\n    }\\n  ]\\n}\"\n  },\n  {\n    \"ID\": 16,\n    \"Type\": \"How does it work\",\n    \"Name_Section\": \"How_5\",\n    \"Short_Description\": \"Simple horizontal three-step process explanation, each step with its own title and description. A concluding single-line statement underneath summarizes the result of following the steps.  Useful for Analytical and High-O personas in mid to\",\n    \"Tags\": \"#how, #three_step, #process_flow, #horizontal_steps, #result_statement, #educational, #mid_funnel, #bottom_funnel, #for_high_O, #for_analytical\",\n    \"Variable_Text\": \"[\\n    {\\n      \\\"variable\\\": \\\"how_button_1\\\",\\n      \\\"instruction\\\": \\\"Optional call-to-action encouraging visitors to engage with the process or learn more.\\\",\\n      \\\"max_length\\\": 25\\n    },\\n    {\\n      \\\"variable\\\": \\\"how_headline_1\\\",\\n      \\\"instruction\\\": \\\"Main headline introducing How does it work  section and explaining its purpose.\\\",\\n      \\\"max_length\\\": 60\\n    },\\n    {\\n      \\\"variable\\\": \\\"how_subtext_1\\\",\\n      \\\"instruction\\\": \\\"Introductory sentence that sets up the context before describing the steps.\\\",\\n      \\\"max_length\\\": 120\\n    },\\n    {\\n      \\\"variable\\\": \\\"how_headline_2\\\",\\n      \\\"instruction\\\": \\\"Title for step one in the process.\\\",\\n      \\\"max_length\\\": 60\\n    },\\n    {\\n      \\\"variable\\\": \\\"how_subtext_2\\\",\\n      \\\"instruction\\\": \\\"Description of step one, focusing on the main action or benefit.\\\",\\n      \\\"max_length\\\": 120\\n    },\\n    {\\n      \\\"variable\\\": \\\"how_headline_3\\\",\\n      \\\"instruction\\\": \\\"Title for step two in the process.\\\",\\n      \\\"max_length\\\": 60\\n    },\\n    {\\n      \\\"variable\\\": \\\"how_subtext_3\\\",\\n      \\\"instruction\\\": \\\"Description of step two, focusing on the main action or benefit.\\\",\\n      \\\"max_length\\\": 120\\n    },\\n    {\\n      \\\"variable\\\": \\\"how_headline_4\\\",\\n      \\\"instruction\\\": \\\"Title for step three in the process.\\\",\\n      \\\"max_length\\\": 60\\n    },\\n    {\\n      \\\"variable\\\": \\\"how_subtext_4\\\",\\n      \\\"instruction\\\": \\\"Description of step three, focusing on the main action or benefit.\\\",\\n      \\\"max_length\\\": 120\\n    },\\n    {\\n      \\\"variable\\\": \\\"how_headline_5\\\",\\n      \\\"instruction\\\": \\\"Single-line conclusion summarizing the result of completing all three steps.\\\",\\n      \\\"max_length\\\": 80\\n    }\\n  ]\\n}\"\n  },\n  {\n    \"ID\": 17,\n    \"Type\": \"How does it work\",\n    \"Name_Section\": \"How_6\",\n    \"Short_Description\": \"Section starting with a main title and supporting text explaining how the process works, followed by three static KPI blocks showing performance statistics. Below the KPIs is a logo wall showcasing integrations or partner tools to reinforce trust and capability. Perfect for Analytical and S personas needing trust and context before\",\n    \"Tags\": \"#how, #explainer, #insights, #visual_examples, #trust, #educational, #mid_funnel, #for_s, #for_analytical\",\n    \"Variable_Text\": \"[\\n    {\\n      \\\"variable\\\": \\\"how_button_1\\\",\\n      \\\"instruction\\\": \\\"Optional call-to-action encouraging the visitor to explore how the system works or start using it.\\\",\\n      \\\"max_length\\\": 25\\n    },\\n    {\\n      \\\"variable\\\": \\\"how_headline_1\\\",\\n      \\\"instruction\\\": \\\"Main headline introducing the how does it work section, designed to attract attention with KPI's\\\",\\n      \\\"max_length\\\": 60\\n    },\\n    {\\n      \\\"variable\\\": \\\"how_subtext_1\\\",\\n      \\\"instruction\\\": \\\"Brief explanatory text describing how the process works form begin to end\\\",\\n      \\\"max_length\\\": 160\\n    }\\n  ]\\n}\"\n  },\n  {\n    \"ID\": 29,\n    \"Type\": \"Table\",\n    \"Name_Section\": \"Table_1\",\n    \"Short_Description\": \"A two-column comparison table illustrating the differences between two entities: either NeuroPage vs other tools or the lead’s company vs their competitors, depending on the persona, situation, or campaign goal.\\nThe left column lists six drawbacks or limitations of the competitor/current approach.\\nThe right column lists six direct, positive opposites that position the other side as the better choice.\\nThe statements must be contrasting, clear, and persuasive, matching the target persona’s needs and objections.\",\n    \"Tags\": \"#comparison_table, #competitor_analysis, #for_analytical, #for_doubter, #mid_funnel, #decision_support\",\n    \"Variable_Text\": \"[\\n  {\\n    \\\"variable\\\": \\\"comparison_headline\\\",\\n    \\\"instruction\\\": \\\"Main headline introducing the comparison, making clear what is being compared and why it matters.\\\",\\n    \\\"max_length\\\": 60\\n  },\\n  {\\n    \\\"variable\\\": \\\"comparison_left_title\\\",\\n    \\\"instruction\\\": \\\"Column title for the competitor/current approach side.\\\",\\n    \\\"max_length\\\": 30\\n  },\\n  {\\n    \\\"variable\\\": \\\"comparison_right_title\\\",\\n    \\\"instruction\\\": \\\"Column title for the NeuroPage/new approach side.\\\",\\n    \\\"max_length\\\": 30\\n  },\\n  {\\n    \\\"variable\\\": \\\"comparison_left_1\\\",\\n    \\\"instruction\\\": \\\"First drawback or limitation of the competitor/current approach.\\\",\\n    \\\"max_length\\\": 80\\n  },\\n  {\\n    \\\"variable\\\": \\\"comparison_right_1\\\",\\n    \\\"instruction\\\": \\\"Direct positive opposite of 'comparison_left_1' highlighting the advantage of NeuroPage/new approach.\\\",\\n    \\\"max_length\\\": 80\\n  },\\n  {\\n    \\\"variable\\\": \\\"comparison_left_2\\\",\\n    \\\"instruction\\\": \\\"Second drawback or limitation of the competitor/current approach.\\\",\\n    \\\"max_length\\\": 80\\n  },\\n  {\\n    \\\"variable\\\": \\\"comparison_right_2\\\",\\n    \\\"instruction\\\": \\\"Direct positive opposite of 'comparison_left_2'.\\\",\\n    \\\"max_length\\\": 80\\n  },\\n  {\\n    \\\"variable\\\": \\\"comparison_left_3\\\",\\n    \\\"instruction\\\": \\\"Third drawback or limitation of the competitor/current approach.\\\",\\n    \\\"max_length\\\": 80\\n  },\\n  {\\n    \\\"variable\\\": \\\"comparison_right_3\\\",\\n    \\\"instruction\\\": \\\"Direct positive opposite of 'comparison_left_3'.\\\",\\n    \\\"max_length\\\": 80\\n  },\\n  {\\n    \\\"variable\\\": \\\"comparison_left_4\\\",\\n    \\\"instruction\\\": \\\"Fourth drawback or limitation of the competitor/current approach.\\\",\\n    \\\"max_length\\\": 80\\n  },\\n  {\\n    \\\"variable\\\": \\\"comparison_right_4\\\",\\n    \\\"instruction\\\": \\\"Direct positive opposite of 'comparison_left_4'.\\\",\\n    \\\"max_length\\\": 80\\n  },\\n  {\\n    \\\"variable\\\": \\\"comparison_left_5\\\",\\n    \\\"instruction\\\": \\\"Fifth drawback or limitation of the competitor/current approach.\\\",\\n    \\\"max_length\\\": 80\\n  },\\n  {\\n    \\\"variable\\\": \\\"comparison_right_5\\\",\\n    \\\"instruction\\\": \\\"Direct positive opposite of 'comparison_left_5'.\\\",\\n    \\\"max_length\\\": 80\\n  },\\n  {\\n    \\\"variable\\\": \\\"comparison_left_6\\\",\\n    \\\"instruction\\\": \\\"Sixth drawback or limitation of the competitor/current approach.\\\",\\n    \\\"max_length\\\": 80\\n  },\\n  {\\n    \\\"variable\\\": \\\"comparison_right_6\\\",\\n    \\\"instruction\\\": \\\"Direct positive opposite of 'comparison_left_6'.\\\",\\n    \\\"max_length\\\": 80\\n  }\\n]\"\n  },\n  {\n    \"ID\": 30,\n    \"Type\": \"Tooling\",\n    \"Name_Section\": \"Tooling_1\",\n    \"Short_Description\": \"A minimal horizontal lineup of well-known AI tool logos (e.g., Midjourney, DALL·E 2, Bing, Hugging Face, Bard). Targets innovative, early-adopter personas who value cutting-edge AI capabilities and creative tech integration. The focus is on brand recognition and trend alignment rather than explaining stack compatibility.\",\n    \"Tags\": \"#tools, #ai_focus, #innovator_persona, #brand_recognition, #early_adopter, #for_high_O, #future_ready\"\n  },\n  {\n    \"ID\": 31,\n    \"Type\": \"Tooling\",\n    \"Name_Section\": \"Tooling_2\",\n    \"Short_Description\": \"A wide grid of various software and platform logos under the headline “Connect your tools.” Designed for operations-driven and analytical personas who care about how NeuroPage fits into their existing stack. Emphasizes compatibility, integration flexibility, and workflow continuity. Note: Should not be used if Information.4 is already present to avoid redundancy.\",\n    \"Tags\": \"#tools, #integration_focus, #compatibility, #stack_friendly, #for_analytical, #for_s, #mid_funnel, #workflow_optimization\"\n  },\n  {\n    \"ID\": 32,\n    \"Type\": \"Pricing\",\n    \"Name_Section\": \"Pricing_1\",\n    \"Short_Description\": \"Textual explanation of how the pricing is structured, paired with three components that make up the cost. Includes a CTA headline encouraging visitors to explore pricing.\",\n    \"Tags\": \"#pricing, #cost_breakdown, #transparent_pricing, #informational, #for_analytical, #mid_funnel\",\n    \"Variable_Text\": \"[\\n  {\\n    \\\"variable\\\": \\\"pricing_button_text\\\",\\n    \\\"instruction\\\": \\\"Clear, action-oriented text for a headline that encourages visitors to explore pricing details.\\\",\\n    \\\"max_length\\\": 25\\n  },\\n  {\\n    \\\"variable\\\": \\\"pricing_headline\\\",\\n    \\\"instruction\\\": \\\"Headline explaining that the pricing is transparent and based on clear components.\\\",\\n    \\\"max_length\\\": 60\\n  },\\n  {\\n    \\\"variable\\\": \\\"pricing_subtext\\\",\\n    \\\"instruction\\\": \\\"Short sentence explaining how the price is structured and what factors influence it.\\\",\\n    \\\"max_length\\\": 120\\n  },\\n  {\\n    \\\"variable\\\": \\\"pricing_component_title_1\\\",\\n    \\\"instruction\\\": \\\"Title of the first key element that makes up the pricing.\\\",\\n    \\\"max_length\\\": 40\\n  },\\n  {\\n    \\\"variable\\\": \\\"pricing_component_subtext_1\\\",\\n    \\\"instruction\\\": \\\"Short explanation of the first pricing element.\\\",\\n    \\\"max_length\\\": 80\\n  },\\n  {\\n    \\\"variable\\\": \\\"pricing_component_title_2\\\",\\n    \\\"instruction\\\": \\\"Title of the second key element that makes up the pricing.\\\",\\n    \\\"max_length\\\": 40\\n  },\\n  {\\n    \\\"variable\\\": \\\"pricing_component_subtext_2\\\",\\n    \\\"instruction\\\": \\\"Short explanation of the second pricing element.\\\",\\n    \\\"max_length\\\": 80\\n  },\\n  {\\n    \\\"variable\\\": \\\"pricing_component_title_3\\\",\\n    \\\"instruction\\\": \\\"Title of the third key element that makes up the pricing.\\\",\\n    \\\"max_length\\\": 40\\n  },\\n  {\\n    \\\"variable\\\": \\\"pricing_component_subtext_3\\\",\\n    \\\"instruction\\\": \\\"Short explanation of the third pricing element.\\\",\\n    \\\"max_length\\\": 80\\n  }\\n]\"\n  },\n  {\n    \"ID\": 33,\n    \"Type\": \"Pricing\",\n    \"Name_Section\": \"Pricing_2\",\n    \"Short_Description\": \" Focus on trust via a quote from the beta community. Strong headline with price shown directly. Three supporting benefit blocks explaining why the pricing is worth it.\",\n    \"Tags\": \"#pricing, #trust_proof, #beta_feedback, #value_focus, #for_s, #for_doubter, #mid_funnel\",\n    \"Variable_Text\": \"[\\n  {\\n    \\\"variable\\\": \\\"pricing_headline\\\",\\n    \\\"instruction\\\": \\\"Strong headline that includes the price and positions it as high-value for the visitor.\\\",\\n    \\\"max_length\\\": 60\\n  },\\n  {\\n    \\\"variable\\\": \\\"pricing_subtext\\\",\\n    \\\"instruction\\\": \\\"Short sentence reinforcing the value and trustworthiness of the pricing. It is a estimation based on the beta\\\",\\n    \\\"max_length\\\": 120\\n  },\\n  {\\n    \\\"variable\\\": \\\"pricing_benefit_title_1\\\",\\n    \\\"instruction\\\": \\\"Title for the first benefit of the pricing.\\\",\\n    \\\"max_length\\\": 40\\n  },\\n  {\\n    \\\"variable\\\": \\\"pricing_benefit_subtext_1\\\",\\n    \\\"instruction\\\": \\\"Short explanation for the first benefit of the pricing.\\\",\\n    \\\"max_length\\\": 80\\n  },\\n  {\\n    \\\"variable\\\": \\\"pricing_benefit_title_2\\\",\\n    \\\"instruction\\\": \\\"Title for the second benefit of the pricing.\\\",\\n    \\\"max_length\\\": 40\\n  },\\n  {\\n    \\\"variable\\\": \\\"pricing_benefit_subtext_2\\\",\\n    \\\"instruction\\\": \\\"Short explanation for the second benefit of the pricing.\\\",\\n    \\\"max_length\\\": 80\\n  },\\n  {\\n    \\\"variable\\\": \\\"pricing_benefit_title_3\\\",\\n    \\\"instruction\\\": \\\"Title for the third benefit of the pricing.\\\",\\n    \\\"max_length\\\": 40\\n  },\\n  {\\n    \\\"variable\\\": \\\"pricing_benefit_subtext_3\\\",\\n    \\\"instruction\\\": \\\"Short explanation for the third benefit of the pricing.\\\",\\n    \\\"max_length\\\": 80\\n  },\\n  {\\n    \\\"variable\\\": \\\"pricing_quote\\\",\\n    \\\"instruction\\\": \\\"Trust-building quote from a beta user about the pricing and value.\\\",\\n    \\\"max_length\\\": 120\\n  },\\n  {\\n    \\\"variable\\\": \\\"pricing_quote_job_title\\\",\\n    \\\"instruction\\\": \\\"Job title of the beta user quoted, aligned with the page’s target audience.\\\",\\n    \\\"max_length\\\": 40\\n  },\\n  {\\n    \\\"variable\\\": \\\"pricing_quote_industry\\\",\\n    \\\"instruction\\\": \\\"Jobtitle, Industry  of the beta user quoted, aligned with the page’s target audience.\\\",\\n    \\\"max_length\\\": 40\\n  }\\n]\"\n  },\n  {\n    \"ID\": 34,\n    \"Type\": \"Pricing\",\n    \"Name_Section\": \"Pricing_3\",\n    \"Short_Description\": \"Comparison between what the visitor currently spends vs what they get with the tool. Left side lists three current high-cost pain points; right side shows solution components. Headline connects problem to solution.\",\n    \"Tags\": \"#pricing, #problem_solution, #cost_saving, #value_focus, #for_high_O, #mid_funnel\",\n    \"Variable_Text\": \"[\\n  {\\n    \\\"variable\\\": \\\"pricing_headline\\\",\\n    \\\"instruction\\\": \\\"Headline that clearly connects the visitor's current cost problem with the solution provided by the product.\\\",\\n    \\\"max_length\\\": 60\\n  },\\n  {\\n    \\\"variable\\\": \\\"pricing_subtext\\\",\\n    \\\"instruction\\\": \\\"Short explanation reinforcing the problem-solution angle in relation to cost.\\\",\\n    \\\"max_length\\\": 120\\n  },\\n  {\\n    \\\"variable\\\": \\\"pricing_painpoint_1\\\",\\n    \\\"instruction\\\": \\\"First high-cost pain point the visitor currently experiences.\\\",\\n    \\\"max_length\\\": 50\\n  },\\n  {\\n    \\\"variable\\\": \\\"pricing_painpoint_2\\\",\\n    \\\"instruction\\\": \\\"Second high-cost pain point the visitor currently experiences.\\\",\\n    \\\"max_length\\\": 50\\n  },\\n  {\\n    \\\"variable\\\": \\\"pricing_painpoint_3\\\",\\n    \\\"instruction\\\": \\\"Third high-cost pain point the visitor currently experiences.\\\",\\n    \\\"max_length\\\": 50\\n  }\\n]\"\n  },\n  {\n    \"ID\": 35,\n    \"Type\": \"Pricing\",\n    \"Name_Section\": \"Pricing_4\",\n    \"Short_Description\": \"Side-by-side comparison of investment vs results. Headline emphasizes the comparison, subtext links to pain points in the industry, and results list highlights tangible benefits of the investment.\",\n    \"Tags\": \"#pricing, #investment_vs_return, #roi_focus, #value_focus, #for_analytical, #mid_funnel\",\n    \"Variable_Text\": \"[\\n  {\\n    \\\"variable\\\": \\\"pricing_headline\\\",\\n    \\\"instruction\\\": \\\"Headline that emphasizes the direct comparison between investment and results.\\\",\\n    \\\"max_length\\\": 60\\n  },\\n  {\\n    \\\"variable\\\": \\\"pricing_subtext\\\",\\n    \\\"instruction\\\": \\\"Short sentence that links the investment to pain points solved in the visitor’s industry.\\\",\\n    \\\"max_length\\\": 120\\n  },\\n  {\\n    \\\"variable\\\": \\\"pricing_investment_title\\\",\\n    \\\"instruction\\\": \\\"Title for the investment side of the comparison.\\\",\\n    \\\"max_length\\\": 40\\n  },\\n  {\\n    \\\"variable\\\": \\\"pricing_investment_subtext\\\",\\n    \\\"instruction\\\": \\\"Short explanation for what the investment entails.\\\",\\n    \\\"max_length\\\": 80\\n  },\\n  {\\n    \\\"variable\\\": \\\"pricing_result_title_1\\\",\\n    \\\"instruction\\\": \\\"Title for the first result achieved from the investment.\\\",\\n    \\\"max_length\\\": 40\\n  },\\n  {\\n    \\\"variable\\\": \\\"pricing_result_title_2\\\",\\n    \\\"instruction\\\": \\\"Title for the second result achieved from the investment.\\\",\\n    \\\"max_length\\\": 40\\n  },\\n  {\\n    \\\"variable\\\": \\\"pricing_result_title_3\\\",\\n    \\\"instruction\\\": \\\"Title for the third result achieved from the investment.\\\",\\n    \\\"max_length\\\": 40\\n  }\\n]\"\n  }\n]",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1648,
+        672
+      ],
+      "id": "a20426aa-4ff1-4650-8584-156a1c653b5c",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "56599652-b4bc-4c97-b4e7-028d1ac476ac",
+              "name": "allIDs",
+              "value": "={{ $json.allIDs .toJsonString()}}",
+              "type": "array"
+            },
+            {
+              "id": "7b0db4e4-c364-47c2-a914-4d66e78cfe0a",
+              "name": "",
+              "value": "={{ $('Aggregate').item.json.item.toJsonString() }}",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -176,
+        112
+      ],
+      "id": "327cb120-ac20-4efd-9638-6c0f5119920c",
+      "name": "Edit Fields2"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "366b2fcf-7673-48db-a61a-eb5fd46ef181",
+              "name": "",
+              "value": "={{ $json.output }}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -624,
+        112
+      ],
+      "id": "64f7cd5e-6a5f-4503-ad18-9daca5d74e70",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=---\n\n## INPUT VARIABLES\nFull description of the lead’s persona, including personality traits, buying behavior, decision-making style, and psychographics.\n {{ $('When clicking ‘Execute workflow’').item.json.leads.toJsonString() }}\n\n\nInformation about the company the lead is from, including industry, size, location, and positioning.\n\n\nDetails about the marketing campaign, including the offer, urgency level, emotional/rational appeal, and stage in the buyer journey.\n\n\nThe JSON schema for the selected section. Each item contains:\n- `variable` → The variable name to be filled\n- `instruction` → Clear guidance on what text to write\n- `max_length` → Maximum character limit for that field\n{{ $('Edit Fields1').item.json[''][$json.output.structure].toJsonString()}}\n\n",
+        "options": {
+          "systemMessage": "=## ROLE\nYou are an **AI Copy Generator** with 20+ years of experience in marketing personalization.  \nYour job is to generate **fully customized landing page content** in JSON format based on:\n- A selected landing page section template schema\n- Detailed lead, company, and campaign data\n\nYou must follow the schema exactly, respect character limits, and ensure the copy reflects both the persona’s style and the campaign objectives.\n\n\n---\n\n## GENERATION LOGIC\n1. Read `persona_details`, `company_details`, and `campaign_details`.\n2. Understand the tone, style, and focus needed (trust, urgency, analytical, emotional, visual).\n3. For each entry in `section_schema`:\n   - Follow the `instruction` exactly.\n   - Stay within `max_length`.\n   - Use details from persona, company, and campaign for relevancy.\n4. Generate **natural, persuasive, and conversion-focused** text for each variable.\n5. Ensure text feels consistent across all variables (same tone & messaging).\n\n---\n\n## OUTPUT FORMAT\nReturn **only valid JSON**, no extra text.  \nThe JSON must have:\n{\n  \"section_id\": \"ID of the selected section\",\n  \"section_name\": \"Name_Section\",\n  \"generated_content\": {\n    \"variable_name\": \"generated text\",\n    \"variable_name\": \"generated text\"\n  }\n}\n\n---\n\n## OUTPUT RULES\n- Never exceed the `max_length` for any variable.\n- Always fill every variable in the schema.\n- Maintain consistent tone and style according to persona & campaign.\n- Do not include instructions, reasoning, or explanations in the output.\n- No placeholders — generate final ready-to-use copy.\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        -1648,
+        1120
+      ],
+      "id": "ae36d8db-25e8-423a-a2cc-4bb076f33f51",
+      "name": "AI Copy Generator"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4.1-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -816,
+        -176
+      ],
+      "id": "51c60d59-f620-4025-a25c-ff78c76d7952",
+      "name": "OpenAI Chat Model2",
+      "credentials": {
+        "openAiApi": {
+          "id": "wTSZ8SaZV25avtvM",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=---\n\n## INPUT VARIABLES\nFull details from the lead’s LinkedIn profile.\n{{ $('Code').item.json.toJsonString() }}\n\nYou are a conversion-optimized AI profiler.\nYour role is to transform LinkedIn profile data into actionable marketing personas.\nYou do this by scoring behavior with Decision Style, DISC, and OCEAN, and by summarizing traits into a clear persona description.\n\nGuidelines:\n  - Be precise and logical, avoid random guessing\n\n  - Always link role, company type, tenure, and industry context to behavior\n\n  - Keep output concise, structured, and conversion-oriented\n\n  - Output must be consistent: same input same results\n\n  - Only produce the requested JSON object, nothing else\n",
+        "options": {
+          "systemMessage": "=#ROLE\nYou are a behavioral profiling engine specialized in B2B marketing personalization.\nYour task is to analyze structured LinkedIn profile information and generate a psychographic complete persona for targeted marketing.\nYour output includes personality scores (Decision Style, DISC, OCEAN), a data quality indicator, a unique persona label, and a behavioral summary.\nAll output must follow the exact JSON format.\n\n#ANALYSIS LOGIC\n\n1. Review linkedin_profile_info to determine:\n\n  - Career role, responsibilities, and seniority\n  - Industry knowledge and focus areas\n  -Company type and size; period of tenure in roles\n- Role Description about responsibilties and way of acting\n  - Headline and about/summary text (tone, complexity, values)\n  - Communication style and tone preference\n  - Indications of decision-making speed and style\n  - Social engagement and openness to innovation (articles, activity, visuals)\n\n2. Based on this input, infer:\n\n  - Decision Style: analytical, emotional, impulsive, doubter\n  - DISC: D, I, S, C\n  - OCEAN: O, C2, E, A, N\n\nAlways map scores logically using role type, industry exposure, seniority, and writing style\n\nAvoid wild guesses: only infer what is behaviorally plausible from input\n\n3. Generate a persona_label:\n  - Keep it short (2–3 words), clear, behavior-driven\n  - Avoid job title repetition\n  - Focus on what defines their behavior: decision speed, tone, style, or trust approach. Examples: “Logical Doubter”, “Fast-Deciding Builder”, “Careful Evaluator”\n\n4. Score all numeric fields as integers between 0 and 100.\n\n5. Create a persona_summary (max 650 characters):\n  - Describe how this person works, thinks, communicates, and builds trust\n  - Translate the scores into behavioral traits — but do not mention DISC, OCEAN, or Decision Style by name\n  - Show links between traits (e.g. high structure + low impulsiveness = cautious decisioning)\n  - Explain what motivates them and how they evaluate offers\n  - Clarify how to convert them: tone, angle, or CTA that will resonate\n  - Avoid generic fluff or job-title mirroring\n  - Use clear, simple language\n\n#OUTPUT FORMAT\n\nReturn only valid JSON in this structure:\n\n{\n\"Persona_label\": \"<short descriptive title>\",\n\"analytical\": <0-100>,\n\"emotional\": <0-100>,\n\"impulsive\": <0-100>,\n\"doubter\": <0-100>,\n\"D\": <0-100>,\n\"I\": <0-100>,\n\"S\": <0-100>,\n\"C\": <0-100>,\n\"O\": <0-100>,\n\"C2\": <0-100>,\n\"E\": <0-100>,\n\"A\": <0-100>,\n\"N\": <0-100>,\n\"data_quality_score\": <0-100>,\n\"persona_summary\": \"<4–6 sentences, max 650 characters, following the rules above>\"\n}\n\nOUTPUT RULES\n  - No extra text outside the JSON\n  - All numeric values must be integers between 0 and 100\n  - Persona_label must be short, unique, descriptive\n  - Set data_quality_score (0–100) based on profile richness:\nHigh = multiple roles, good descriptions, skills, engagement signals\nMedium = limited role history, short about text, few signals\nLow = headline only, no descriptions, missing history\n\n  - Never invent details unrelated to LinkedIn input\n\nNever output ```json code fences"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        -1104,
+        656
+      ],
+      "id": "2fbdb1fd-b0d3-47a4-b1de-4bd82aaed646",
+      "name": "AI Persona  Generator"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "fc68cdad-2f60-4871-b4bd-d7a2f07006c7",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -1648,
+        -544
+      ],
+      "id": "46c397f6-38ff-42e1-8fb0-e91214a7cd91",
+      "name": "Webhook",
+      "webhookId": "fc68cdad-2f60-4871-b4bd-d7a2f07006c7"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n\"sales_hook\": {{ $json.output }},\n\"persona\":{{ $('AI Persona  Generator1').item.json.output }}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        -96,
+        -544
+      ],
+      "id": "2eb7bb5b-8f06-4a0d-b5ce-ac6dd23d3975",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nif (items.length === 0) return [];\n\nconst body = items[0].json.body['airscale-data'];\n\nfunction formatDate(dateString) {\n  if (!dateString) return null;\n  const d = new Date(dateString);\n  if (isNaN(d)) return null;\n  return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}`;\n}\n\nconst positions = (body.positionGroups?.contents || []).flatMap(group =>\n  (group.profilePositions || []).map(pos => ({\n    company: pos.company || null,\n    title: pos.title || null,\n    description: pos.description || null,\n    startDate: formatDate(pos.date?.start),\n    employmentType: pos.employmentType || null,\n    location: pos.location || null,\n  }))\n);\n\nconst educations = (body.educations?.contents || []).map(edu => ({\n  school: edu.school?.name || null,\n  degree: edu.degreeName || null,\n  fieldOfStudy: edu.fieldOfStudy || null,\n  startDate: edu.date?.start ? String(new Date(edu.date.start).getUTCFullYear()) : null,\n  endDate: edu.date?.end ? String(new Date(edu.date.end).getUTCFullYear()) : null,\n}));\n\nconst certifications = (body.certifications?.contents || []).map(cert => ({\n  name: cert.name || null,\n  authority: cert.authority || null,\n  startDate: formatDate(cert.date?.start) || null,\n}));\n\nconst projects = (body.projects?.contents || []).map(proj => ({\n  title: proj.title || null,\n  startDate: formatDate(proj.date?.start) || null,\n  endDate: formatDate(proj.date?.end) || null,\n}));\n\nconst courses = (body.courses?.contents || []).map(course => ({\n  name: course.name || null,\n \n}));\n\nconst awards = (body.awards?.contents || []).map(award => ({\n  name: award.name || null,\n  issuer: award.issuer || null,    // Adjust field names if needed\n  date: formatDate(award.date) || null,\n}));\n\nconst languages = (body.languages?.contents || []).map(lang => ({\n  name: lang.name || null,\n \n}));\n\nconst output = {\n  firstName: body.firstname || null,\n  lastName: body.lastname || null,\n  headline: body.headline || null,\n  summary: body.summary || null,\n  location: body.location?.defaultValue || null,\n  positions,\n  educations,\n  certifications,\n  projects,\n  courses,\n  awards,\n  languages,\n  skills: body.skills?.contents || [],\n};\n\nreturn [\n  { json: output }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1424,
+        -544
+      ],
+      "id": "3d99f40a-d053-41b0-8889-3c3e01844454",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "9f7a62f4-2724-457a-9130-7502afcc4fbf",
+              "name": "",
+              "value": "",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1648,
+        1344
+      ],
+      "id": "728e81cb-e4b1-404c-aafb-dd0d10dcd29f",
+      "name": "Edit Fields3"
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appPxwLhpZJHZNNHo",
+          "mode": "list",
+          "cachedResultName": "Neuropage Section Mapping",
+          "cachedResultUrl": "https://airtable.com/appPxwLhpZJHZNNHo"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tbljVaaAKc2V9AzdH",
+          "mode": "list",
+          "cachedResultName": "Mapping_V2",
+          "cachedResultUrl": "https://airtable.com/appPxwLhpZJHZNNHo/tbljVaaAKc2V9AzdH"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        -1424,
+        112
+      ],
+      "id": "e8f5180f-7705-464d-b4a5-17c37c9a6a9f",
+      "name": "Search records",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "ONpNa4EkH2FFHplw",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "destinationFieldName": "item",
+        "include": "allFieldsExcept",
+        "fieldsToExclude": "id, createdTime",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        -1200,
+        112
+      ],
+      "id": "193b43e2-99bf-4e4a-a282-5ad0c2d57fb5",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are generating the landing page content for a specific B2B visitor\n\nHere is the full context:\nLead, Campaign, User & Sales Info (leading factor for wished output):\n\n{{ $('Webhook1').item.json.body.lead.toJsonString() }}\n\n**The Sales_hook content is a leading factor: always emphasize industry pain points and explain how the user’s solution can be applied strategically in that industry.\n---\n## Page Structure:\nThis is the structure selected by Agent 1.\nEach item is a every section you must fill with text:\n{{ $('Edit Fields').item.json[''].structure.toJsonString() }}\n\n\n\nAvailable Variables Per Section :\nThe tool includes all variables needed for each section, their max length, and instructions.\n**Do not generate beyond what the tool describes.**\nUse the section + variable names exactly.\n{{ $json.filteredSections.toJsonString() }}\n\n---\n\nInstructions:\n1. For each section in the structure, retrieve the corresponding variable list from the tool.  \n\n2. Write content for each variable, aligning with:  \n   - The lead’s persona profile (Decision Style, DISC, OCEAN → style, tone, trust need).  \n   - The campaign goal (conversion objective):  {{ $('Webhook1').item.json.body.lead.campaign.goal }} \n   - The lead’s job title, company, and sector.  \n   - The Sales_hook: industry pain points, deduced from role + company context.  \n   - **Web research**: use external sources to understand the company, sector trends, and role-specific challenges. Incorporate these insights into hooks, examples, and proof points.  \n\n3. Use the lead’s first name (not full name) and company name where relevant. Always address in “you” form. Avoid constructions like “a strategic leader like Name”; instead, connect naturally, e.g. “FirstName, as a strategic leader, you…\n\n** You need to use the company name and job title of the lead more to direct speak to them if that is better for results. Depending on persona and Data Quality score (to be sure it is the correct assumption). We want to show that is specific aimed on the lead\n\n4. Always explain why the solution is valuable for this lead’s role and company specifically, not in generic terms. Use the Sales_hooks to connect:\n\n  - The lead’s company name and job title from the input.\n  - Industry-specific context (trends, pain points, competitor pressure).\n  - How the solution can be strategically applied in this industry (e.g. growth, partnerships, scalability).\n  - Concrete examples that feel specific to their role + company situation\n\n5. Adapt tone of voice per DISC and OCEAN traits (e.g. S = warm/reassuring, D = direct/result-driven, O = expressive/creative, C = precise/structured).  \n\n6. Keep all outputs within the character limit that is named in {{ $('Edit Fields').item.json[''].structure.toJsonString() }} (±10% deviation allowed). \n**Important for Ai Definition: max_characters >> Number of Letter and Space that MAXIMUM can be used per Section/text block\n\n7. In top hero secton the persona_name should be the \"{{ $('Webhook1').item.json.body.lead.name }}\"\" and persona_label should be \"{{ $('Webhook1').item.json.body.lead['json persona'].Persona_label }}\"\"\n\n8. Don’t add extra sections or fields. Only return what’s asked.\n\n9. Don't use AI common ai language word or sentenced but your humanized text aproach\n\n10. Use normal capitalization: start sentences with a capital letter, and capitalize proper nouns, names, acronyms, or brands. Do not capitalize every word, and do not avoid capitals where they are grammatically required.\n\n11. All text must be written in the lead’s preferred language. If the language cannot be determined with high certainty, default to English. Label: \n\n12. Deterministic: same input = same output.\n\n13. Be specific, role- and industry-driven: tie insights to the lead’s job title, company, and industry challenges.\n\n\n📤 Output format:\n\n\n{\n  \"Hero 1.01\": {\n    \"hero_headline_1\": \"...\",\n    \"hero_subtext_1\": \"...\",\n    \"hero_cta_label\": \"...\"\n  },\n  \"Benefits 1.02\": {\n    \"benefits_headline\": \"...\",\n    \"benefits_bullet_1\": \"...\",\n    \"benefits_bullet_2\": \"...\",\n    ...\n  }\n}\n",
+        "options": {
+          "systemMessage": "=You are a conversion-optimized AI copywriter.  \nYour job is to generate highly personalised, persona-based content for dynamic B2B landing pages.  \n\nEach page consists of a modular structure, with each section requiring specific content variables (like headlines, sublines, CTAs, etc.). The structure has already been defined for you.  \n\nYou write using:  \n- The lead's behavioural profile (DISC, OCEAN, Decision Style).  \n- The campaign’s messaging goal.  \n- The persona’s job title, role, and implied industry.  \n- **Research insights** into the lead’s company and sector to find strong hooks and proof points.  \n- The tone of voice that fits the persona profile (based on DISC + OCEAN).  \n- The data quality score, which tells you how confidently you can lean into persona-specific language.  \n\nGuidelines:  \n- Use the structure and variable schema as your guide.  \n- Generate only what is requested.  \n- Match tone, CTA type, and messaging per section to the persona.  \n- Be efficient. Stick to character limits (±10%).  \n- No fluff, no generic sales talk — only high-converting, intelligent, relevant copy.  \n- Be consistent. Same persona and inputs = same output every time.  \n- Never output ```json code fences"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        272,
+        112
+      ],
+      "id": "b855cea7-b77c-4299-b3b2-58e3d4c19ea4",
+      "name": "AI Copy Generator1"
+    },
+    {
+      "parameters": {
+        "jsCode": "const keys = Object.keys(items[0].json);\nif (!keys.length) throw new Error(\"Input JSON has no keys\");\n\nconst firstKey = keys[0];\nconst structure = items[0].json[firstKey]?.structure;\n\nif (!structure) {\n  throw new Error(\"Structure not found\");\n}\n\n// Extract IDs as numbers into an array\nconst allIDs = structure.map(item => Number(item.ID));\n\n// Return the entire IDs array inside one object (one item)\nreturn [{ json: { allIDs } }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -400,
+        112
+      ],
+      "id": "6818d4ba-9670-4367-9b20-e3fbdd2b2d6c",
+      "name": "Code1"
+    },
+    {
+      "parameters": {
+        "jsCode": "const allIDs = items[0].json.allIDs;\nconst data = items[0].json[\"\"];\n\nif (!Array.isArray(allIDs)) {\n  throw new Error(\"allIDs is not an array\");\n}\nif (!Array.isArray(data)) {\n  throw new Error(\"Data array not found\");\n}\n\n// Filter data to only include items with ID in allIDs\nlet filteredSections = data.filter(item => allIDs.includes(item.ID));\n\n// Sort filtered sections by ascending ID number\nfilteredSections.sort((a, b) => a.ID - b.ID);\n\n// Return as one item containing filtered and sorted sections array\nreturn [{ json: { filteredSections } }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        48,
+        112
+      ],
+      "id": "2c2823a3-85ad-4841-8a5d-9f27128b16b7",
+      "name": "Code2"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "366b2fcf-7673-48db-a61a-eb5fd46ef181",
+              "name": "",
+              "value": "={\n\"PageContent\": {{ $json.output }},\n\"SelectedSections\":{{ $('Edit Fields').item.json[''].structure.toJsonString() }}}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        640,
+        -176
+      ],
+      "id": "c357ce75-b1c7-4662-874d-6ee9b320d557",
+      "name": "Edit Fields4"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "b1f492fc-8d8e-4485-b76e-59b679b7b1d5",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -1648,
+        112
+      ],
+      "id": "1f3417d7-d201-4e51-87b9-db07ce1d0077",
+      "name": "Webhook1",
+      "webhookId": "b1f492fc-8d8e-4485-b76e-59b679b7b1d5"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n\"PageContent\": {{ $json.output }},\n\"SelectedSections\":{{ $('Edit Fields').item.json[''].structure.toJsonString() }}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        640,
+        112
+      ],
+      "id": "989511ab-b4f1-44d3-a342-89a02ce01201",
+      "name": "Respond to Webhook1"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=\nYou are now planning a landing page for the following lead and campaign.\n\n## Lead & campaign Info\n\n\n{{ $('Webhook1').item.json.body.lead.toJsonString()}}\n\n\nAvailable Sections (your component library):\n{{ $json.item.toJsonString() }}\n\n## Task\nFollow the SYSTEM_PROMPT rules strictly.\n- Parse the persona and map to tags deterministically.\n- Apply the scoring mechanism (persona, campaign-stage, structural, context).\n- Select and order sections according to page length, placement, and structural requirements.\n- If data_quality_score <60, ignore persona scoring and default to rank_order narrative: Problem → Solution → Proof → CTA.\n- Ensure the final structure flows as a logical story.\n\nReturn only valid JSON in the format:\n{\n  \\\"structure\\\": [\n    {\n      \\\"ID\\\": 12,\n      \\\"Type\\\": \\\"Top_Hero\\\",\n      \\\"Name\\\": \\\"Top_Hero_1\\\",\n      \\\"purpose\\\": \\\"Explain to next AI agent how to write and why. Always in English, max 2 short functional sentences, not marketing copy.\\\"\n    },\n    {\n      \\\"ID\\\": 10,\n      \\\"Type\\\": \\\"Hero Section\\\",\n      \\\"Name\\\": \\\"Hero_4\\\",\n      \\\"purpose\\\": \\\"Explain to next AI agent how to write and why. Always in English, max 2 short functional sentences, not marketing copy.\\\"\n    }\n    // 1–6 more sections according to persona and fallback rules\n  ]\n}\"\n",
+        "options": {
+          "systemMessage": "=\nYou are a structured, decision-based AI landing page architect.\nYour job is to select and order landing page sections for a specific B2B lead and campaign.\n\nInputs:\n1. Persona (summary + scores)\n2. Campaign objective\n3. Company value proposition\n4. Section library\n\nRules:\n1) Persona parsing:\n   - Normalize persona summary + scores into persona tags using thresholds:\n     * High ≥70\n     * Medium = 40–69\n     * Low <40\n   - Mapping rules (deterministic):\n     * Decision Style:\n       - Impulsive → if DISC D ≥70 or behavior shows fast/decisive/impulsive → #for_impulsive\n       - Doubter → if DISC S ≥70 or behavior shows cautious/hesitant → #for_doubter\n       - Analytical → if DISC C ≥70 or persona shows strong data/structure focus → #for_analytical\n       - Balanced → if no single DISC trait ≥70 or persona shows considered/mixed style → #for_balanced\n     * DISC:\n       - D-high (≥70) → #for_d\n       - I-high (≥70) → #for_i\n       - S-high (≥70) → #for_s\n       - C-high (≥70) → #for_c\n     * OCEAN:\n       - O-high (≥70) → #for_high_O\n       - O-low (≤39) → #for_low_O\n       - C-high (≥70) → #for_high_C\n       - C-low (≤39) → #for_low_C\n       - E-high (≥70) → #for_high_E\n       - E-low (≤39) → #for_low_E\n       - A-high (≥70) → #for_high_A\n       - A-low (≤39) → #for_low_A\n       - N-high (≥70) → #for_high_N\n       - N-low (≤39) → #for_low_N\n\n2) Scoring mechanism (per section):\n   - Persona tag match:\n     * Score >80 = +3\n     * Score 60–80 = +2\n     * Score 40–60 = +1\n     * Score <40 = 0\n   - Campaign-stage tag match (#top_funnel, #mid_funnel, #bottom_funnel) = +2\n   - Structural need (CTA, Trust/Social Proof, Pricing, How, FAQ) = +1\n   - Context / thematic tag match (e.g. #ai_focus, #roi_focus, #tools, #innovation) = +1 if campaign objective, company value proposition or persona summary semantically mentions this theme\n   - Tie-breaker (if equal total score): prioritize persona-specific relevance → campaign-stage → trust/clarity.\n   - Always calculate and sum total score per section before selection.\n\n3) Page length:\n   - Impulsive/D personas → 3–5 sections\n   - Analytical/Doubter personas → 6–8 sections\n   - Balanced/I-S personas → 4–6 sections\n   - If fewer high-scorers than minimum → include next highest until minimum met.\n   - If more than maximum → select only top-N highest.\n\n4) Structural requirements:\n   - Always start with Top-Hero.\n   - Always follow immediately with one Hero-section (highest score).\n   - Always include at least 1 CTA.\n   - Always include at least 1 Trust/Social Proof if persona is cautious/doubter/S.\n   - Only 1 variant per type (Pricing, How, FAQ, etc.) unless two variants score high and add distinct value → explicitly mark this in purpose.\n\n5) Research mandate:\n   - Use web sources for company, role, and industry when needed.\n   - If browsing is unavailable: never guess → only use input JSON.\n\n6) Determinism & fallback:\n   - Same input = same output.\n   - Do not use randomness.\n   - If data_quality_score <60 → ignore persona-based scoring and use default rank_order from the section library.\n     * Ensure narrative follows Problem → Solution → Proof → CTA.\n\n7) Placement rules (order):\n   - Use the rank_order bucket from the section table (Early, Middle, Late, or Free).\n   - Always start with Top-Hero followed by one Hero Section.\n   - Place sections in bucket order: Early → Middle → Late.\n   - Sections with Free adapt placement to persona traits.\n   - Persona overrides take precedence:\n     * Impulsive/D = Pricing/CTA may move to Early.\n     * Analytical/Doubter = FAQ/Testimonials must appear before Pricing.\n     * O-high = How/Information may move earlier.\n\n8) Sorting within buckets:\n   - Within each bucket, sort sections by total score (highest → lowest).\n   - If two sections have equal score, apply tie-breakers in this order:\n     1) persona-specific\n     2) campaign-stage\n     3) trust/clarity\n\nOutput:\n- Return valid JSON only.\n- JSON must contain: structure = array of objects with fields: ID, Type, Name, purpose.\n- Purpose field: always in English, short instruction (1–2 sentences) for the next AI agent on how to write and why.\n- No extra prose, no code fences.\nEOF\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        -976,
+        112
+      ],
+      "id": "6eb2f478-ec6a-40d7-94fe-30ecd9edfc0a",
+      "name": "AI Section Selector1"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "e7aa4651-30fd-4ca6-8bed-ac41b31303f1",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -1648,
+        -976
+      ],
+      "id": "90243bf8-b457-427b-8b45-f5b1439009f8",
+      "name": "Webhook2",
+      "webhookId": "e7aa4651-30fd-4ca6-8bed-ac41b31303f1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.firecrawl.dev/v2/crawl",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer fc-fdfc3a09cb664d1389678ca6ce6acb76"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"url\": \"{{ $json.body[\"Company url\"] }}\",\n  \"limit\": 10,\n  \"crawlEntireDomain\": true,\n  \"allowSubdomains\": false,\n  \"scrapeOptions\": {\n    \"formats\": [\n      \"markdown\"\n    ],\n    \"onlyMainContent\": true,\n    \"includeTags\": [],\n    \"excludeTags\": [],\n    \"timeout\": 60000\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -1424,
+        -976
+      ],
+      "id": "dd0bb8f3-1ce7-489c-b3be-4f8658cc205a",
+      "name": "HTTP Request1"
+    },
+    {
+      "parameters": {
+        "url": "=https://api.firecrawl.dev/v2/crawl/{{ $json.id }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer fc-fdfc3a09cb664d1389678ca6ce6acb76"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -976,
+        -976
+      ],
+      "id": "e13b74cb-4553-4a81-a625-9598bd6ba094",
+      "name": "HTTP Request2"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d5e99dff-68ba-45ee-ba65-8c01509426e0",
+              "name": "",
+              "value": "={{ $json.output }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -112,
+        -1168
+      ],
+      "id": "df484a21-30a0-41ba-b3e7-da0bc5abc154",
+      "name": "Edit Fields6"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4.1-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -544,
+        -784
+      ],
+      "id": "3882f9f5-6b23-4ad0-96fe-59fb3f3cf8ad",
+      "name": "OpenAI Chat Model3",
+      "credentials": {
+        "openAiApi": {
+          "id": "wTSZ8SaZV25avtvM",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 33
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        -1200,
+        -976
+      ],
+      "id": "aec0cfa1-ed46-4201-b515-e5099a26b133",
+      "name": "Wait",
+      "webhookId": "43ed8357-1efe-435a-a66a-56daafbffdbb"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Initialize an array for the output with objects containing URL as key and markdown as value\nconst markdownArray = [];\n\n// Loop over each input item\nfor (const item of items) {\n  if (item.json && Array.isArray(item.json.data)) {\n    for (const entry of item.json.data) {\n      if (entry.markdown && entry.metadata && entry.metadata.url) {\n        // Push an object with URL as key and markdown string as value\n        const obj = {};\n        obj[entry.metadata.url] = entry.markdown;\n        markdownArray.push(obj);\n      }\n    }\n  }\n}\n\n// Return an array with one item, containing the array of markdown objects under key 'markdown'\nreturn [{ json: { markdown: markdownArray } }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -752,
+        -976
+      ],
+      "id": "ab66b289-2915-4e1d-a9ce-c4cae4999ed1",
+      "name": "Code3"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json.output }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        -112,
+        -976
+      ],
+      "id": "e8a15e23-7349-408c-afc0-be33cec45dd0",
+      "name": "Respond to Webhook2"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=## INPUT\nLinkedIn profile data (full JSON):\n{{ $json.toJsonString() }}\n\n## TASK\nFrom the experience data, identify the **main current job** of this person.\n\n## REQUIREMENTS\n- Pick only 1 current role (job title + company).\n- Prioritize: full-time roles > long-term roles > senior positions.\n- De-prioritize: voluntary roles, internships, side jobs, advisory/board roles.\n- If multiple active jobs: choose the one that best represents professional identity.\n- If no clear match, pick the most stable and relevant role.\n\n## OUTPUT FORMAT\n{\n  \"main_current_job\": {\n    \"title\": \"...\",\n    \"company\": \"...\"\n  }\n}\n\n## RULES\n- Always return exactly one job.\n- No extra text outside JSON.\n",
+        "options": {
+          "systemMessage": "You are a lead profiler.\nYour job is to extract the single most relevant current professional role from LinkedIn data.\nAlways prefer the main career job over voluntary or side activities.\nReturn only valid JSON.\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        -1408,
+        656
+      ],
+      "id": "8360c180-03ef-4f05-8e86-02b57c70f24b",
+      "name": "AI Agent1"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=---\n\n## INPUT VARIABLES\nFull details from the lead’s LinkedIn profile.\n{{ $('Code').item.json.toJsonString() }}\n\nYou are a conversion-optimized AI profiler.\nYour role is to transform LinkedIn profile data into actionable marketing personas.\nYou do this by scoring behavior with Decision Style, DISC, and OCEAN, and by summarizing traits into a clear persona description and extract the single most relevant current professional role from LinkedIn data\n\nGuidelines:\n  - Be precise and logical, avoid random guessing\n\n  - Always link role, company type, tenure, and industry context to behavior\n\n  - Keep output concise, structured, and conversion-oriented\n\n  - Output must be consistent: same input same results\n\n  - Only produce the requested JSON object, nothing else\n\n- Always prefer the active career job over not-active anymore\n\n  - Always prefer the main active career job over voluntary or side activities.\n\n  - Pick only 1 current role (job title + company, preferable an active job). Hhoose wisely:\n\n    - Prioritize: full-time roles > long-term roles > senior positions > active.\n\n    - De-prioritize: voluntary roles, internships, side jobs, advisory/board roles.\n\n    - If multiple active jobs: choose the one that best represents professional identity (and = active for longest period)\n\n    - If no clear match, pick the most stable and relevant/active role.\n\n  - Prioritize Founder/Owner/CEO roles when present, even if another job is more recent, unless the Founder role is clearly inactive and he has other active roles. \n\n  - When comparing multiple active jobs, prefer the role that best represents the lead’s main professional identity, usually tied to entrepreneurship, senior leadership, or long-term positions.\n\n  - Do not automatically choose the most recent role; weigh role type (Founder/Owner > senior management > functional role) and duration.\n\n\n- Based on LinkedIn data, estimate the lead’s preferred language. Default to English unless the profile clearly indicates another language with high certainty. Preferred_Language\n\n",
+        "options": {
+          "systemMessage": "=#ROLE\nYou are a behavioral profiling engine specialized in B2B marketing personalization.\nYour task is to analyze structured LinkedIn profile information and generate a psychographic complete persona for targeted marketing.\nYour output includes personality scores (Decision Style, DISC, OCEAN), a data quality indicator, a unique persona label, and a behavioral summary.\nAll output must follow the exact JSON format.\n\n#ANALYSIS LOGIC\n\n1. Review linkedin_profile_info to determine:\n\n  - Career role, responsibilities, and seniority\n  - Industry knowledge and focus areas\n  -Company type and size; period of tenure in roles\n- Role Description about responsibilties and way of acting\n  - Headline and about/summary text (tone, complexity, values)\n  - Communication style and tone preference\n  - Indications of decision-making speed and style\n  - Social engagement and openness to innovation (articles, activity, visuals)\n\n2. Based on this input, infer:\n\n  - Decision Style: analytical, emotional, impulsive, doubter\n  - DISC: D, I, S, C\n  - OCEAN: O, C2, E, A, N\n\nAlways map scores logically using role type, industry exposure, seniority, and writing style\n\nAvoid wild guesses: only infer what is behaviorally plausible from input\n\n**Decision Style mapping must follow deterministic rules:\n   * Impulsive → if DISC D ≥70 or behavior shows fast/decisive/impulsive\n   * Doubter → if DISC S ≥70 or C ≥70 or behavior shows cautious/hesitant\n   * Balanced → if no single DISC trait ≥70 or behavior shows considered/mixed style\n\n\n3. Generate a persona_label:\n  - Keep it short (2–3 words), clear, behavior-driven\n  - Avoid job title repetition\n  - Focus on what defines their behavior: decision speed, tone, style, or trust approach. Examples: “Logical Doubter”, “Fast-Deciding Builder”, “Careful Evaluator”\n\n4. Score all numeric fields as integers between 0 and 100.\n\n5. Create a persona_summary (max 650 characters):\n  - Describe how this person works, thinks, communicates, and builds trust\n  - Translate the scores into behavioral traits — but do not mention DISC, OCEAN, or Decision Style by name\n  - Show links between traits (e.g. high structure + low impulsiveness = cautious decisioning)\n  - Explain what motivates them and how they evaluate offers\n  - Clarify how to convert them: tone, angle, or CTA that will resonate\n  - Avoid generic fluff or job-title mirroring\n  - Use clear, simple language\n6. Extract the single most relevant current professional role from LinkedIn data. Give the job title, company, URL Linkedin Compant, website URL (of the most recent)\nAlways prefer the main career job over voluntary or side activities.\nReturn only valid JSON.\n7. Based on LinkedIn data, estimate the lead’s preferred language. Default to English unless the profile clearly indicates another language with high certainty\n\n\n#OUTPUT FORMAT\n\nReturn only valid JSON in this structure:\n\n{\n\"Persona_label\": \"<short descriptive title>\",\n\"analytical\": <0-100>,\n\"emotional\": <0-100>,\n\"impulsive\": <0-100>,\n\"doubter\": <0-100>,\n\"D\": <0-100>,\n\"I\": <0-100>,\n\"S\": <0-100>,\n\"C\": <0-100>,\n\"O\": <0-100>,\n\"C2\": <0-100>,\n\"E\": <0-100>,\n\"A\": <0-100>,\n\"N\": <0-100>,\n\"data_quality_score\": <0-100>,\n\"persona_summary\": \"<4–6 sentences, max 650 characters, following the rules above>\",\n\"main_current_job\": {\n    \"title\": \"...\",\n    \"company\": \"...\"\n    \"description\": \"...\",\n    \"website_company\"\n    \"linkedIn_company\"\n\"Preferred_Language\": \"...\" (English is default)>   \n\n}}\n\n\n\n\n\n\nOUTPUT RULES\n  - No extra text outside the JSON\n  - All numeric values must be integers between 0 and 100\n  - Persona_label must be short, unique, descriptive\n  - Set data_quality_score (0–100) based on profile richness:\nHigh = multiple roles, good descriptions, skills, engagement signals\nMedium = limited role history, short about text, few signals\nLow = headline only, no descriptions, missing history\n   - Always return exactly one job.\n   - No extra text outside JSON.\n\n  - Never invent details unrelated to LinkedIn input\n\nNever output ```json code fences"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        -1200,
+        -544
+      ],
+      "id": "2fa90617-f072-445d-96e6-c7be082973e1",
+      "name": "AI Persona  Generator1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "151c2230-9016-44d2-93f2-6c5f6932ca54",
+              "name": "output",
+              "value": "={{ $json.output }}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -816,
+        -544
+      ],
+      "id": "7c022fdd-bc1d-4604-92bd-37b1fa8db313",
+      "name": "Edit Fields5"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=## INPUT VARIABLES\nLead info (from Raw_persona): \n{{ $('Edit Fields5').item.json.output.main_current_job.toJsonString() }}\n\nUser info (User_explained_JSON):\n{{ $('Webhook').item.json.body.User_explained.toJsonString() }}\n\n\n## TASK\n\n1. Deeply analyze the lead’s situation by combining:\n\n  - Job title & responsibilities > what this role typically aims for and struggles with.\n\n  - Industry context > sector trends, common challenges, competitive pressure. Check in depth what industry the lead operate and who are the direct stakeholders for them\n\n  - Leads Company context > what the company does and likely needs (B2B > B2C). Check in depth what they do by checking the web and linkedin.\n\n2. Link the situation with the following:\n\n  - The lead’s core frustrations and problems based on their job title, industry, and company goals.\n\n  - How these problems can be directly addressed by the user’s strengths and differentiators.\n\n  - How the user’s solution can strategically be used by the lead’s company to grow or improve (e.g. partnerships, B2B scaling, efficiency gains), not just solving immediate customer-facing issues (B2C). ** B2B perspective over B2C\n\nGoal: Identify the lead’s key challenges and link them to the user’s strengths. Generate short, sharp sales hooks that mention the industry, job title, and company for context. **Output must be AI-friendly so it can be reused in other prompts without losing clarity.\n\n\n## OUTPUT FORMAT\n{\n  \"lead_company_analysis\": {\n    \"job_title\": \"...\",\n    \"company_name\": \"...\",\n    \"key_challenges\": [\"...\", \"...\", \"...\"]\n  },\n  \"problems_aligned_to_user\": [\"...\", \"...\", \"...\"],\n  \"sales_hooks\": [\n    {\"hook\": \"...\", \"why_it_works\": \"...\"},\n    {\"hook\": \"...\", \"why_it_works\": \"...\"},\n    {\"hook\": \"...\", \"why_it_works\": \"...\"}\n  ],\n  \"summary_sales_angle\": \"...\"\n\"matching_score (0-100)\": \"...\"\n}\n\n\n\n# OUTPUT RULES\n- Lists: max 3 items\n- Hooks: ≤2 sentences, address role/industry pain + growth use\n- Why it works: show how user’s solution fixes issue + drives strategic growth\n- Summary: ≤2 sentences, clear + actionable\n- No filler/fluff/repetition\n- Same input = same output\n- Only valid JSON \n- Include a matching_score (0–100) showing how well the user’s solution aligns with the lead’s role, company, and industry.”\n\n**Important: Output must be AI-friendly so it can be reused in other prompts without losing clarity.\n\n",
+        "options": {
+          "systemMessage": "=# ROLE\nYou are a B2B sales strategist.\n\nYour job is to analyze a lead’s role and company context, identify their most pressing challenges, align these with the user’s strengths, and produce persuasive, persona-relevant sales hooks.\n\n#ANALYSIS LOGIC\n1. Review all input variables:\n   - Lead info (Raw_persona): job title, company, LinkedIn URL, recent company description  \n   - User info (User_explained_JSON)  \n\n2. Infer the following:\n   - Lead’s job context → responsibilities, priorities, decision power  \n   - Company situation → industry, size, recent positioning  \n   - Key challenges → max 3 issues most relevant to this role & company  \n   - Alignment → how the user’s company directly solves these challenges  \n\n3. Generate sales assets:\n   - Sales hooks (3 total): each with  \n     - Hook: max 2 sentences, compelling & persona-specific  \n     - Why it works: clear reasoning why the hook resonates with this lead  \n   - Summary sales angle: 1–2 sentences combining user’s strengths with the lead’s needs  \n\n4. Always tie challenges and hooks to the **lead’s business reality**. Avoid generic claims. Precision > length.\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        -560,
+        -544
+      ],
+      "id": "3e9238c2-67ad-4c07-a675-7557195ab9c7",
+      "name": "Matching agent"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=User Messgage\n\n## INPUT VARIABLES\n- Company name: {{ $('Webhook2').item.json.body['Company name'] }}\n- Website text (scraped): {{ $json.markdown.toJsonString() }}\n\n- User self-description: {{ $('Webhook2').item.json.body['Company Description'] }}\n",
+        "options": {
+          "systemMessage": "=# ROLE\nYou are a B2B company analyst.\nYour task is to analyze company information and generate a concise, sales-relevant summary with positioning, value, and differentiation.\nYou use both website content and user self-description to extract insights.\n\n# ANALYSIS LOGIC\n1. Review input variables:\n   - Company name  \n   - Website text (scraped)  \n   - User self-description  \n\n2. From this information, determine:\n   - Overall company positioning and value (max 3 sentences)  \n   - Key strengths (3–4 items)  \n   - Differentiators (3–4 items)  \n   - Target audience (one-sentence description)  \n   - Messaging angles (3–4 items for B2B sales)  \n   - Tone keywords (2–3 descriptors for brand/voice style)  \n\n3. Avoid fluff. Focus only on details relevant for **B2B sales and positioning**.\n\n# OUTPUT FORMAT\nReturn only valid JSON in this structure:\n{\n  \"company_summary\": \"Max 3 sentences overview of what the company does.\",\n  \"key_strengths\": [\"...\", \"...\", \"...\"],\n  \"differentiators\": [\"...\", \"...\", \"...\"],\n  \"target_audience\": \"One-sentence description of main customers.\",\n  \"messaging_angles\": [\"...\", \"...\", \"...\"],\n  \"tone_keywords\": [\"...\", \"...\"]\n}\n\n# OUTPUT RULES\n- Lists must have a maximum of 3–4 items.  \n- Be concise, sales-oriented, and avoid generic statements.  \n- No extra text outside the JSON object.  \n- Ensure consistency: same input = same output.\n- Never output ```json code fences"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        -512,
+        -976
+      ],
+      "id": "d8457371-de80-4e13-ad83-2c180fa25803",
+      "name": "company analysis agent"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b8634863-fea6-4ba5-95d5-d99446005879",
+              "name": "",
+              "value": "={\n\"sales_hook\": {{ $json.output }},\n\"persona\":{{ $('AI Persona  Generator1').item.json.output }}}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {
+          "ignoreConversionErrors": false
+        }
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -112,
+        -736
+      ],
+      "id": "11f89993-2ddf-4a3c-b4bf-147e3e666559",
+      "name": "Edit Fields7"
+    }
+  ],
+  "pinData": {
+    "AI Section Selector": [
+      {
+        "json": {
+          "output": "{\"selected_section_id\":9,\"selected_section_name\":\"Hero_1.03\",\"matching_tags\":[\"#hero\",\"#visual\",\"#explainer\",\"#how_it_works\",\"#for_high_O\",\"#for_analytical\",\"#information\"],\"reason_for_selection\":\"This section suits Bas's practical and innovative entrepreneur persona as it provides a highly visual explanation of how the system works, appealing to his analytical thinking and openness to new ideas. It matches his need for clear, structured, and rational information with a focus on understanding the functional aspects before decision-making.\"}"
+        }
+      }
+    ],
+    "AI Copy Generator": [
+      {
+        "json": {
+          "output": "{\n  \"section_id\": \"2\",\n  \"section_name\": \"Hero_1.04\",\n  \"generated_content\": {\n    \"hero_top_label\": \"Vertrouwd door innovatieve ondernemers in Nederland\",\n    \"hero_headline_1\": \"Maak werk en leren eenvoudiger met slimme, praktische oplossingen\",\n    \"hero_subtext_1\": \"Ontdek hoe onze tool uw processen stroomlijnt en samenwerking plezieriger maakt – perfect voor aanpakkers die resultaat willen.\",\n    \"hero_visitor_group_relevance\": \"62% van de bezoekers is actief in directie en marketingrollen\"\n  }\n}"
+        }
+      }
+    ],
+    "When clicking ‘Execute workflow’": [
+      {
+        "json": {
+          "leads": [
+            {
+              "Lead_id": 1,
+              "full_name": "Bas Vleugel",
+              "company_name": "Yinga",
+              "email": "",
+              "linkedin_url": "https://www.linkedin.com/in/basvleugel/",
+              "Phone": "",
+              "timestamp": "12/08/25 0:00",
+              "scrape_raw_json": "",
+              "scrape_timestamp": "0.03",
+              "about_text": "Ik heb een passie voor innovatieve web en app toepassingen die het leven, werken en leren makkelijker en leuker maken. Met een ondernemende blik kijk ik graag naar ideeën om deze concreet te maken tot succesvolle toepassingen. Wij geloven in samenwerking, plezier in werk, en win-win.",
+              "activities_count": 1,
+              "articles_count": 0,
+              "country": "Netherlands",
+              "engagement_active": "",
+              "engagement_level": 40.6,
+              "experience_years": "Directeur bij Prezent.nl software & Yinga.nl online marketing",
+              "headline": "Directeur bij Prezent.nl software & Yinga.nl online marketing",
+              "industries": [
+                "Corporate Training",
+                "E-commerce Software",
+                "IT / Consulting",
+                "IT / HR Software",
+                "IT Consulting",
+                "International Marketing & Expansion",
+                "Web & App Development / SaaS",
+                "Webdesign / Development"
+              ],
+              "primary_company": "Yinga",
+              "primary_role_title": "Aanpakker",
+              "role_category": "International Marketing & Expansion",
+              "seniority_level": "executive",
+              "skills": "Interim Management, CMS, ICT",
+              "Experience": [
+                {
+                  "position": "Aanpakker",
+                  "company_name": "Yinga",
+                  "industry": "International Marketing & Expansion",
+                  "company_type": "Agency",
+                  "duration_years": 1.2
+                },
+                {
+                  "position": "Directeur",
+                  "company_name": "Prezent Internet BV",
+                  "industry": "Web & App Development / SaaS",
+                  "company_type": "SME / Scale-up",
+                  "duration_years": 9.5
+                },
+                {
+                  "position": "Accountmanager",
+                  "company_name": "LogiVert",
+                  "industry": "E-commerce Software",
+                  "company_type": "SME",
+                  "duration_years": 8.9
+                },
+                {
+                  "position": "Directeur",
+                  "company_name": "Sebastian Webprojecten",
+                  "industry": "Webdesign / Development",
+                  "company_type": "Small Business",
+                  "duration_years": 9
+                },
+                {
+                  "position": "Owner / Consultant",
+                  "company_name": "WingConsult",
+                  "industry": "IT / Consulting",
+                  "company_type": "Freelance",
+                  "duration_years": 4
+                },
+                {
+                  "position": "e-HRM Consultant",
+                  "company_name": "IBM",
+                  "industry": "IT / HR Software",
+                  "company_type": "Corporate",
+                  "duration_years": 3
+                },
+                {
+                  "position": "e-learning consultant",
+                  "company_name": "IBM Education and Training",
+                  "industry": "Corporate Training",
+                  "company_type": "Corporate",
+                  "duration_years": 2
+                },
+                {
+                  "position": "IT Consultant",
+                  "company_name": "Viamet (IBM)",
+                  "industry": "IT Consulting",
+                  "company_type": "Corporate",
+                  "duration_years": 3
+                }
+              ],
+              "uses_visuals": false,
+              "location": "amersfoort",
+              "followers": "",
+              "connections": "500+",
+              "courses": "",
+              "languages": "Dutch, English",
+              "projects": "",
+              "enrichment_raw_json": "",
+              "Persona_label": "De Praktisch-Innovatieve Ondernemer",
+              "analytical": 76,
+              "emotional": 59,
+              "impulsive": 42,
+              "doubter": 34,
+              "D": 72,
+              "I": 66,
+              "S": 53,
+              "C": 61,
+              "O": 69,
+              "C2": 74,
+              "E": 63,
+              "A": 60,
+              "N": 27,
+              "data_quality_score": 91,
+              "persona_summary": "Bas is een strategisch ingestelde ondernemer met een praktische inslag. Hij beslist rationeel en onderbouwd, maar staat ook open voor samenwerking en plezier in werk. Zijn stijl is gericht op controle, structuur en innovatie. Hij communiceert helder, sociaal correct, en zoekt naar oplossingen die écht werken. Hij waardeert processen, maar blijft flexibel. In communicatie werkt een directe en oplossingsgerichte benadering het best — met duidelijke voordelen, concrete voorbeelden en minimale ruis."
+            }
+          ]
+        }
+      }
+    ],
+    "Webhook1": [
+      {
+        "json": {
+          "headers": {
+            "host": "n8n.srv954852.hstgr.cloud",
+            "user-agent": "Bubble",
+            "content-length": "1280",
+            "accept-encoding": "gzip, deflate",
+            "baggage": "bubblegroup.task_name=schedule_api_event,bubblegroup.workflow.appname=neurolink-12389,bubblegroup.workflow.app_version=test,bubblegroup.workflow.situation=scheduled_action,bubblegroup.workflow.id=bTJfx,bubblegroup.workflow.event.type=APIEvent,bubblegroup.workflow.action.id=bTJgD,bubblegroup.workflow.action.type=apiconnector2-bTIkj.bTJev",
+            "content-type": "application/json",
+            "traceparent": "00-e3805395dd3fdc328a3d3f690cbbc4b7-5d67ed996acf52bb-01",
+            "x-bubble-depth": "1",
+            "x-forwarded-for": "52.26.213.138",
+            "x-forwarded-host": "n8n.srv954852.hstgr.cloud",
+            "x-forwarded-port": "443",
+            "x-forwarded-proto": "https",
+            "x-forwarded-server": "70357cde3d47",
+            "x-real-ip": "52.26.213.138"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "user": {
+              "company name": "Neuropage",
+              "website": "neuropage.nl"
+            },
+            "lead": {
+              "json persona": {
+                "Persona_label": "Methodical Retiree",
+                "analytical": 90,
+                "emotional": 25,
+                "impulsive": 10,
+                "doubter": 60,
+                "D ": 50,
+                "I": 20,
+                "S": 70,
+                "C": 90,
+                "O": 60,
+                "C2": 85,
+                "E": 35,
+                "A": 75,
+                "N": 30,
+                "data_quality_score": 85,
+                "persona_summary": "This individual approaches decisions with thorough analysis and a strong focus on accuracy, preferring clear, detailed, and logical communication. Their low impulsivity combined with moderate doubt shows they carefully evaluate information and value structured governance and risk management. They are steady and reliable, with a preference for consistent, trustworthy offers that emphasize control and compliance. Messaging that respects their expertise, highlights proven outcomes, and provides comprehensive evidence will resonate best, encouraging confidence and action through professionalism and reliability."
+              },
+              "name": "Jane Smith",
+              "job": "Technology & Security SME",
+              "company": "XYZ Ltd",
+              "campaign": {
+                "name": "test",
+                "description": "test",
+                "referencgoale page": "test",
+                "goal": "Generate leads",
+                "goal description": "test"
+              }
+            }
+          },
+          "webhookUrl": "https://n8n.srv954852.hstgr.cloud/webhook/b1f492fc-8d8e-4485-b76e-59b679b7b1d5",
+          "executionMode": "production"
+        }
+      }
+    ],
+    "Webhook2": [
+      {
+        "json": {
+          "headers": {
+            "host": "n8n.srv954852.hstgr.cloud",
+            "user-agent": "Bubble",
+            "content-length": "1030",
+            "accept-encoding": "gzip, deflate",
+            "baggage": "bubblegroup.client.version=16e0af02c5518287166f776a8f3d0e7041c25b7b,bubblegroup.client.commit_timestamp=1757717233000,bubblegroup.http.route=apiservice%2Fdoapicallfromserver,bubblegroup.http.host=bubble.io",
+            "content-type": "application/json",
+            "traceparent": "00-2714549411deb8db0661e061dadc7f9a-41b4a6394126705b-01",
+            "x-bubble-depth": "1",
+            "x-forwarded-for": "44.248.251.101",
+            "x-forwarded-host": "n8n.srv954852.hstgr.cloud",
+            "x-forwarded-port": "443",
+            "x-forwarded-proto": "https",
+            "x-forwarded-server": "70357cde3d47",
+            "x-real-ip": "44.248.251.101"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "Account type": "regular",
+            "Company Description": "some description",
+            "Company file": "https://146c4c3a89ddedb69f4d2b0fb538b066.cdn.bubble.io/f1757090639852x504196654712183440/image.png?_gl=1*wnq819*_gcl_au*NjUxMzMxODc1LjE3NTc4NDgyNzE.*_ga*ODYxODk3NTY1LjE3NDUyOTk5NDk.*_ga_BFPVR2DEE2*czE3NTc5MTc2MTMkbzEwNCRnMSR0MTc1NzkzOTM3NiRqNjAkbDAkaDA.",
+            "Company name": "Nosh AI automation",
+            "Company url": "https://noshaiautomation.com/",
+            "Company logo": "https://146c4c3a89ddedb69f4d2b0fb538b066.cdn.bubble.io/f1757090639852x504196654712183440/image.png?_gl=1*wnq819*_gcl_au*NjUxMzMxODc1LjE3NTc4NDgyNzE.*_ga*ODYxODk3NTY1LjE3NDUyOTk5NDk.*_ga_BFPVR2DEE2*czE3NTc5MTc2MTMkbzEwNCRnMSR0MTc1NzkzOTM3NiRqNjAkbDAkaDA.",
+            "Name": "Jimmy de groot QGROUP",
+            "Phone no": "+124324576543",
+            "User Avatar": "https://146c4c3a89ddedb69f4d2b0fb538b066.cdn.bubble.io/f1757090639852x504196654712183440/image.png?_gl=1*wnq819*_gcl_au*NjUxMzMxODc1LjE3NTc4NDgyNzE.*_ga*ODYxODk3NTY1LjE3NDUyOTk5NDk.*_ga_BFPVR2DEE2*czE3NTc5MTc2MTMkbzEwNCRnMSR0MTc1NzkzOTM3NiRqNjAkbDAkaDA."
+          },
+          "webhookUrl": "https://n8n.srv954852.hstgr.cloud/webhook/e7aa4651-30fd-4ca6-8bed-ac41b31303f1",
+          "executionMode": "production"
+        }
+      }
+    ],
+    "AI Persona  Generator1": [
+      {
+        "json": {
+          "output": "{\n  \"Persona_label\": \"Strategic Growth Leader\",\n  \"analytical\": 85,\n  \"emotional\": 40,\n  \"impulsive\": 25,\n  \"doubter\": 30,\n  \"D\": 75,\n  \"I\": 50,\n  \"S\": 40,\n  \"C\": 70,\n  \"O\": 70,\n  \"C2\": 80,\n  \"E\": 55,\n  \"A\": 50,\n  \"N\": 35,\n  \"data_quality_score\": 90,\n  \"persona_summary\": \"This person approaches business decisions with high structure and a strong strategic focus, valuing data and rigorous analysis over impulse. They balance assertiveness and sociability, favoring clear, confident communication while remaining open to new ideas and international perspectives. Their motivation comes from measurable growth and market expansion, requiring trust built on proven success and expert advisory. Messaging should be precise, results-driven, and emphasize strategic advantage to engage their interest and align with their growth-oriented mindset.\",\n  \"main_current_job\": {\n    \"title\": \"Founder / Managing Partner\",\n    \"company\": \"SR Agency\"\n  }\n}"
+        }
+      }
+    ],
+    "Webhook": [
+      {
+        "json": {
+          "headers": {
+            "host": "n8n.srv954852.hstgr.cloud",
+            "user-agent": "Bubble",
+            "content-length": "10924",
+            "accept-encoding": "gzip, deflate",
+            "baggage": "bubblegroup.client.version=5377afe70e0401feeed11b81044facda4f1f478d,bubblegroup.client.commit_timestamp=1758027603000,bubblegroup.http.route=apiservice%2Fdoapicallfromserver,bubblegroup.http.host=bubble.io",
+            "content-type": "application/json",
+            "traceparent": "00-503888c21d711e09cb45d30c130ad38a-3e35511e44a1f10a-01",
+            "x-bubble-depth": "1",
+            "x-forwarded-for": "44.251.194.200",
+            "x-forwarded-host": "n8n.srv954852.hstgr.cloud",
+            "x-forwarded-port": "443",
+            "x-forwarded-proto": "https",
+            "x-forwarded-server": "70357cde3d47",
+            "x-real-ip": "44.251.194.200"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "airscale-data": {
+              "url": "https://www.linkedin.com/in/canpaul",
+              "identifier": "canpaul",
+              "entityUrn": "ACoAAAmMYD8BxFbk6FiXA5HMx2OeEHlJlFvRQNY",
+              "objectUrn": 160194623,
+              "firstname": "Can Paul",
+              "lastname": "Urganci",
+              "middleName": null,
+              "birthDate": null,
+              "headline": "Founder at SR Agency",
+              "picture": "https://media.licdn.com/dms/image/v2/D4E03AQHhFRkg_B8zeg/profile-displayphoto-shrink_800_800/profile-displayphoto-shrink_800_800/0/1708609725754?e=1760572800&v=beta&t=4CxbSg_YJ3cZ6kElsEtQqhQGyB1Rnbc8WSELT0GUE-I",
+              "background": "https://media.licdn.com/dms/image/v2/C4E16AQG2D2BpKjUdEQ/profile-displaybackgroundimage-shrink_350_1400/profile-displaybackgroundimage-shrink_350_1400/0/1663327304337?e=1760572800&v=beta&t=dUJXyNmtXPhkNaeSAjMlJ3LEdNjEioH8pR7Vfbjgkm8",
+              "openToWork": false,
+              "summary": "- International Executive Search – C-suite & key roles\n- Advisory on international market entry and expansion\n- Commercial strategy consulting focused on growth acceleration\n- Investment support & strategic advisory",
+              "influencer": false,
+              "premium": true,
+              "industry": "Staffing & Recruiting",
+              "location": {
+                "country": "United Arab Emirates",
+                "city": null,
+                "state": null,
+                "defaultValue": "United Arab Emirates",
+                "shortValue": ""
+              },
+              "organizations": {
+                "totalElements": 0,
+                "page": 0,
+                "size": 20,
+                "contents": []
+              },
+              "educations": {
+                "totalElements": 1,
+                "page": 0,
+                "size": 20,
+                "contents": [
+                  {
+                    "school": {
+                      "id": 164205,
+                      "name": "HU University of Applied Sciences Utrecht (Hogeschool Utrecht)",
+                      "logo": "https://media.licdn.com/dms/image/v2/C4D0BAQE5MUvxbWmHLg/company-logo_400_400/company-logo_400_400/0/1630554392450/hogeschool_utrecht_logo?e=1760572800&v=beta&t=2bJAgc13a_YPigCR4qGTQWu3IFncvRAi2S8WZkSMtYo",
+                      "url": "https://www.linkedin.com/school/hogeschool-utrecht/"
+                    },
+                    "degreeName": "Bachelor",
+                    "fieldOfStudy": "Sales & Marketingmanagement",
+                    "grade": null,
+                    "date": {
+                      "start": "2007-01-01T00:00:00.000+00:00",
+                      "end": "2012-01-01T00:00:00.000+00:00"
+                    }
+                  }
+                ]
+              },
+              "patents": {
+                "totalElements": 0,
+                "page": 0,
+                "size": 20,
+                "contents": []
+              },
+              "awards": {
+                "totalElements": 0,
+                "page": 0,
+                "size": 20,
+                "contents": []
+              },
+              "certifications": {
+                "totalElements": 0,
+                "page": 0,
+                "size": 20,
+                "contents": []
+              },
+              "projects": {
+                "totalElements": 0,
+                "page": 0,
+                "size": 20,
+                "contents": []
+              },
+              "publications": {
+                "totalElements": 0,
+                "page": 0,
+                "size": 20,
+                "contents": []
+              },
+              "courses": {
+                "totalElements": 4,
+                "page": 0,
+                "size": 20,
+                "contents": [
+                  {
+                    "name": "Course Conversation skills Hulshof TCP",
+                    "number": null
+                  },
+                  {
+                    "name": "Course Personal development Hulshof TCP",
+                    "number": null
+                  },
+                  {
+                    "name": "Course Sales Hulshof TCP",
+                    "number": null
+                  },
+                  {
+                    "name": "Sales Funnel",
+                    "number": null
+                  }
+                ]
+              },
+              "testScores": {
+                "totalElements": 0,
+                "page": 0,
+                "size": 20,
+                "contents": []
+              },
+              "positionGroups": {
+                "totalElements": 8,
+                "page": 0,
+                "size": 10,
+                "contents": [
+                  {
+                    "company": {
+                      "id": 87110580,
+                      "name": "SR Agency",
+                      "logo": "https://media.licdn.com/dms/image/v2/C4E0BAQEF9QDCNr_7Fw/company-logo_400_400/company-logo_400_400/0/1663065675072/sr_agency_ltd_logo?e=1760572800&v=beta&t=fpgmHnUn1UGzmnJqyXL05eGZFmmLO5T-gS89JwDkjSw",
+                      "url": "https://www.linkedin.com/company/sr-agency-ltd/",
+                      "domain": "sragency.com"
+                    },
+                    "date": {
+                      "start": "2022-09-01T00:00:00.000+00:00",
+                      "end": null
+                    },
+                    "profilePositions": [
+                      {
+                        "company": "SR Agency",
+                        "description": "- International Executive Search\n- Sales Outsourcing \n- Investments",
+                        "title": "Founder / Managing Partner",
+                        "employmentType": "Full-time",
+                        "location": "Dubai, United Arab Emirates",
+                        "date": {
+                          "start": "2022-09-01T00:00:00.000+00:00",
+                          "end": null
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "company": {
+                      "id": 67189163,
+                      "name": "SDR as a Service",
+                      "logo": "https://media.licdn.com/dms/image/v2/C4D0BAQEUCZtyi2ueeQ/company-logo_400_400/company-logo_400_400/0/1630546864645/sdr_aas_logo?e=1760572800&v=beta&t=RBqACiZrVXBRMVHOi_I_KJrZr2OymEuRmodQRxgQfiU",
+                      "url": "https://www.linkedin.com/company/sdr-aas/",
+                      "domain": "sdr-aas.com"
+                    },
+                    "date": {
+                      "start": "2020-08-01T00:00:00.000+00:00",
+                      "end": "2021-09-01T00:00:00.000+00:00"
+                    },
+                    "profilePositions": [
+                      {
+                        "company": "SDR as a Service",
+                        "description": "Founded the SDR as a Service label\nP&L responsible\nGrew SDRaaS from 0 - 90 MRR",
+                        "title": "Sales Director",
+                        "employmentType": null,
+                        "location": "Amsterdam, North Holland, Netherlands",
+                        "date": {
+                          "start": "2020-08-01T00:00:00.000+00:00",
+                          "end": "2021-09-01T00:00:00.000+00:00"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "company": {
+                      "id": 72406,
+                      "name": "Aexus",
+                      "logo": "https://media.licdn.com/dms/image/v2/C4D0BAQFTNH03vZRJOQ/company-logo_400_400/company-logo_400_400/0/1630533258628/aexus_logo?e=1760572800&v=beta&t=gQzVXPYs000RL1CnJORN623QyZg1w-tbP0tRwwnAWKo",
+                      "url": "https://www.linkedin.com/company/aexus/",
+                      "domain": "aexus.com"
+                    },
+                    "date": {
+                      "start": "2019-01-01T00:00:00.000+00:00",
+                      "end": "2020-08-01T00:00:00.000+00:00"
+                    },
+                    "profilePositions": [
+                      {
+                        "company": "Aexus",
+                        "description": "Responsible for our offices in Amsterdam and Prague\n8 direct reports",
+                        "title": "Sales Manager",
+                        "employmentType": null,
+                        "location": "Amsterdam Area, Netherlands",
+                        "date": {
+                          "start": "2019-01-01T00:00:00.000+00:00",
+                          "end": "2020-08-01T00:00:00.000+00:00"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "company": {
+                      "id": 13134,
+                      "name": "GraydonCreditsafe Nederland",
+                      "logo": "https://media.licdn.com/dms/image/v2/C4E0BAQGH5uVAme0j3w/company-logo_400_400/company-logo_400_400/0/1659357642461/graydoncreditsafe_logo?e=1760572800&v=beta&t=LgUrItV4-3dIjaFJwuw3z08UInWCngs4NHJ5wsQ4WRU",
+                      "url": "https://www.linkedin.com/company/graydoncreditsafe/",
+                      "domain": "graydon.nl"
+                    },
+                    "date": {
+                      "start": "2017-12-01T00:00:00.000+00:00",
+                      "end": "2019-01-01T00:00:00.000+00:00"
+                    },
+                    "profilePositions": [
+                      {
+                        "company": "Graydon",
+                        "description": "Graydon is a leading provider of business credit information, marketing information and data intelligence.\n\nI was responsible for a client base representing 800k in TCV.",
+                        "title": "Account Manager",
+                        "employmentType": null,
+                        "location": "Amsterdam en omgeving, Nederland",
+                        "date": {
+                          "start": "2017-12-01T00:00:00.000+00:00",
+                          "end": "2019-01-01T00:00:00.000+00:00"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "company": {
+                      "id": 72406,
+                      "name": "Aexus",
+                      "logo": "https://media.licdn.com/dms/image/v2/C4D0BAQFTNH03vZRJOQ/company-logo_400_400/company-logo_400_400/0/1630533258628/aexus_logo?e=1760572800&v=beta&t=gQzVXPYs000RL1CnJORN623QyZg1w-tbP0tRwwnAWKo",
+                      "url": "https://www.linkedin.com/company/aexus/",
+                      "domain": "aexus.com"
+                    },
+                    "date": {
+                      "start": "2015-01-01T00:00:00.000+00:00",
+                      "end": "2017-12-01T00:00:00.000+00:00"
+                    },
+                    "profilePositions": [
+                      {
+                        "company": "Aexus",
+                        "description": "dec '17: managing a team of 4 FTE\n\nmay '17: Started the new Amsterdam office, responsibilities included:\n•\tPartner acquisition \n•\tPartner management\n•\tChannel development\n•\tRecruitment\n•\tTrain newly hired staff \n\njan '17: Presented the final plan to the MT for a new branch in Amsterdam\n\naug '16: promoted to Sales Manager \nManaging a team of 2 business development executives and a sales executive",
+                        "title": "Sales Manager",
+                        "employmentType": null,
+                        "location": "Amsterdam Area, Netherlands",
+                        "date": {
+                          "start": "2016-08-01T00:00:00.000+00:00",
+                          "end": "2017-12-01T00:00:00.000+00:00"
+                        }
+                      },
+                      {
+                        "company": "Aexus",
+                        "description": "Outsourced software & technology sales for startups and scale-ups",
+                        "title": "Business Development Manager",
+                        "employmentType": null,
+                        "location": null,
+                        "date": {
+                          "start": "2015-01-01T00:00:00.000+00:00",
+                          "end": "2016-08-01T00:00:00.000+00:00"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "company": {
+                      "name": "Hello-Infinity"
+                    },
+                    "date": {
+                      "start": "2013-08-01T00:00:00.000+00:00",
+                      "end": "2015-01-01T00:00:00.000+00:00"
+                    },
+                    "profilePositions": [
+                      {
+                        "company": "Hello-Infinity",
+                        "description": "Selling digital signage software mainly to the QSR industry",
+                        "title": "Account Manager",
+                        "employmentType": null,
+                        "location": "Netherlands",
+                        "date": {
+                          "start": "2013-08-01T00:00:00.000+00:00",
+                          "end": "2015-01-01T00:00:00.000+00:00"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "company": {
+                      "name": "Athletic Kings Tennis Club"
+                    },
+                    "date": {
+                      "start": "2012-08-01T00:00:00.000+00:00",
+                      "end": "2013-08-01T00:00:00.000+00:00"
+                    },
+                    "profilePositions": [
+                      {
+                        "company": "Athletic Kings Tennis Club",
+                        "description": "Professional tenniscoaching in Dubai",
+                        "title": "Tenniscoach",
+                        "employmentType": null,
+                        "location": "Dubai",
+                        "date": {
+                          "start": "2012-08-01T00:00:00.000+00:00",
+                          "end": "2013-08-01T00:00:00.000+00:00"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "company": {
+                      "id": 294607,
+                      "name": "BAM Bouw en Techniek",
+                      "logo": "https://media.licdn.com/dms/image/v2/C4E0BAQHrtotoOFWONQ/company-logo_400_400/company-logo_400_400/0/1655296637816/bambouwentechniek_logo?e=1760572800&v=beta&t=9qYUFdH_IxApOmCYSV5F9cJA-bybgGEtIocSa626oq4",
+                      "url": "https://www.linkedin.com/company/bambouwentechniek/",
+                      "domain": "bambouwentechniek.nl"
+                    },
+                    "date": {
+                      "start": "2012-02-01T00:00:00.000+00:00",
+                      "end": "2012-07-01T00:00:00.000+00:00"
+                    },
+                    "profilePositions": [
+                      {
+                        "company": "BAM Utiliteitsbouw",
+                        "description": "Researching and analysing new and existing markets\nFinal advice in my thesis (7.0)",
+                        "title": "Graduate Trainee Markt & Innovation",
+                        "employmentType": null,
+                        "location": null,
+                        "date": {
+                          "start": "2012-02-01T00:00:00.000+00:00",
+                          "end": "2012-07-01T00:00:00.000+00:00"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              },
+              "volunteerExperiences": {
+                "totalElements": 0,
+                "page": 0,
+                "size": 20,
+                "contents": []
+              },
+              "languages": {
+                "totalElements": 3,
+                "page": 0,
+                "size": 20,
+                "contents": [
+                  {
+                    "name": "Deutsch",
+                    "proficiency": "LIMITED_WORKING"
+                  },
+                  {
+                    "name": "Dutch",
+                    "proficiency": "NATIVE_OR_BILINGUAL"
+                  },
+                  {
+                    "name": "English",
+                    "proficiency": "FULL_PROFESSIONAL"
+                  }
+                ]
+              },
+              "skills": {
+                "totalElements": 9,
+                "page": 0,
+                "size": 20,
+                "contents": [
+                  "Marketing Communications",
+                  "Social Media",
+                  "English",
+                  "Coaching",
+                  "Account Management",
+                  "Management",
+                  "Sales Management",
+                  "New Business Development",
+                  "Business Development"
+                ]
+              }
+            },
+            "User_explained": {
+              "company_summary": "Neuropage provides AI-driven hyper-personalized landing pages that adapt in real-time to each lead’s unique decision-making style, improving relevance and boosting conversion rates significantly. The platform integrates effortlessly with existing CRM and outreach workflows, automating page optimization without manual A/B testing. It offers GDPR-compliant behavioral profiling beyond traditional segmentation, delivering deeper personalization at scale.",
+              "key_strengths": [
+                "Dynamic landing pages tailored to how individual leads think and decide",
+                "Seamless integration with existing CRM, outreach, and enrichment tools",
+                "Continuous learning from user interactions to optimize campaigns automatically",
+                "Advanced behavioral profiling combining client data with public signals under strict privacy compliance"
+              ],
+              "differentiators": [
+                "Full-page adaptation including structure, tone, content flow, and trust signals—not just text swaps",
+                "Profiles built based on decision behavior rather than superficial attributes like job title",
+                "Automated AI-driven optimization replacing slow, manual A/B testing processes",
+                "Privacy-first design with no sensitive data sharing and compliance with GDPR and AVG"
+              ],
+              "target_audience": "B2B marketers and sales teams looking to increase conversion by delivering personalized digital experiences aligned with individual lead decision-making processes.",
+              "messaging_angles": [
+                "Stop wasting budget on generic landing pages—engage leads with tailored experiences that convert",
+                "Automate and scale personalization effortlessly within your existing sales and marketing stack",
+                "Leverage AI to continuously optimize landing page performance based on real lead behavior",
+                "Ensure compliance and data privacy while gaining deeper insights into lead decision styles"
+              ],
+              "tone_keywords": [
+                "innovative",
+                "data-driven",
+                "customer-centric"
+              ]
+            }
+          },
+          "webhookUrl": "https://n8n.srv954852.hstgr.cloud/webhook/fc68cdad-2f60-4871-b4bd-d7a2f07006c7",
+          "executionMode": "production"
+        }
+      }
+    ],
+    "AI Section Selector1": [
+      {
+        "json": {
+          "output": "{\n  \"structure\": [\n    {\n      \"ID\": 1,\n      \"Type\": \"Top-Hero\",\n      \"Name\": \"Top-hero_1\",\n      \"purpose\": \"Hero introducing personalization analysis. Adapts headline, persona label, description, and previews 5 tailored sections.\",\n      \"matched_tags\": [\n        \"#include_always\",\n        \"#hero_section\",\n        \"#personalization\",\n        \"#persona_based\",\n        \"#dynamic_content\",\n        \"#for_all_personas\",\n        \"#top_funnel\"\n      ]\n    },\n    {\n      \"ID\": 12,\n      \"Type\": \"Hero Section\",\n      \"Name\": \"Hero_6\",\n      \"purpose\": \"Headliner with statistics and portal preview. Best for analytical personas who want tangible results up front.\",\n      \"matched_tags\": [\n        \"#hero\",\n        \"#for_analytical\",\n        \"#data_driven\",\n        \"#analytics_focus\",\n        \"#portal_preview\"\n      ]\n    },\n    {\n      \"ID\": 13,\n      \"Type\": \"How does it work\",\n      \"Name\": \"How_1\",\n      \"purpose\": \"Carousel with slides explaining the process. Reduces uncertainty and builds trust. Best for S and Doubter personas.\",\n      \"matched_tags\": [\n        \"#top_funnel\",\n        \"#how\",\n        \"#carousel\",\n        \"#process_steps\",\n        \"#visual_journey\",\n        \"#educational\",\n        \"#for_s\",\n        \"#for_doubter\"\n      ]\n    },\n    {\n      \"ID\": 27,\n      \"Type\": \"Information\",\n      \"Name\": \"Informaton_3\",\n      \"purpose\": \"Explains integration with tools. Shows compatibility and reduced risk. Appeals to cautious personas.\",\n      \"matched_tags\": [\n        \"#for_s\",\n        \"#for_doubter\",\n        \"#mid_funnel\",\n        \"#information\",\n        \"#integration_friendly\",\n        \"#risk_reduction\"\n      ]\n    },\n    {\n      \"ID\": 33,\n      \"Type\": \"Pricing\",\n      \"Name\": \"Pricing_2\",\n      \"purpose\": \"Trust via beta community quote. Price shown directly + 3 supporting benefits.\",\n      \"matched_tags\": [\n        \"#for_s\",\n        \"#for_doubter\",\n        \"#mid_funnel\",\n        \"#trust_proof\",\n        \"#pricing\",\n        \"#beta_feedback\",\n        \"#value_focus\"\n      ]\n    },\n    {\n      \"ID\": 21,\n      \"Type\": \"Testimonial\",\n      \"Name\": \"Testimonial_1\",\n      \"purpose\": \"Beta community testimonial with profile images, persona-relevant quote, and waiting list counter. Builds trust and social proof.\",\n      \"matched_tags\": [\n        \"#for_s\",\n        \"#for_doubter\",\n        \"#mid_funnel\",\n        \"#testimonial\",\n        \"#social_proof\",\n        \"#beta_community\",\n        \"#quote_block\",\n        \"#trust_builder\"\n      ]\n    },\n    {\n      \"ID\": 5,\n      \"Type\": \"FAQ\",\n      \"Name\": \"FAQ_1\",\n      \"purpose\": \"Simple FAQ with headline, intro text, and source of questions. Transparency-focused. For S and Doubter personas.\",\n      \"matched_tags\": [\n        \"#for_s\",\n        \"#for_doubter\",\n        \"#mid_funnel\",\n        \"#simple_layout\",\n        \"#faq\",\n        \"#question_source\",\n        \"#transparency\",\n        \"#trust\"\n      ]\n    },\n    {\n      \"ID\": 18,\n      \"Type\": \"CTA\",\n      \"Name\": \"CTA_3\",\n      \"purpose\": \"CTA with step-by-step explanation of what happens after sign-up. For S and Doubter personas who want clarity.\",\n      \"matched_tags\": [\n        \"#for_s\",\n        \"#for_doubter\",\n        \"#mid_funnel\",\n        \"#cta\",\n        \"#process_explainer\",\n        \"#three_step\",\n        \"#structured_journey\"\n      ]\n    }\n  ]\n}"
+        }
+      }
+    ],
+    "AI Copy Generator1": [
+      {
+        "json": {
+          "output": "{\n  \"Top-hero_1\": {\n    \"hero_headline\": \"Jane, confidently navigate your tech security decisions with clarity\",\n    \"persona_name\": \"Jane Smith\",\n    \"persona_label\": \"Methodical Retiree\",\n    \"persona_description\": \"You analyze deeply with accuracy, valuing clear logic and consistent governance. Risk management and reliable data guide your decisions.\",\n    \"persona_keypoint_1\": \"Prefers detailed, evidence-based communication\",\n    \"persona_keypoint_2\": \"Evaluates options with structured, controlled processes\",\n    \"persona_keypoint_3\": \"Seeks proven outcomes and comprehensive proof points\",\n    \"persona_keypoint_4\": \"Values trust and steady, reliable solutions\",\n    \"hero_section_1_title\": \"Analytical Insights\",\n    \"hero_section_1_subtext\": \"Rational data and metrics\",\n    \"hero_section_2_title\": \"Process Transparency\",\n    \"hero_section_2_subtext\": \"Clear, stepwise explanations\",\n    \"hero_section_3_title\": \"Integration Ease\",\n    \"hero_section_3_subtext\": \"Compatibility guaranteed\",\n    \"hero_section_4_title\": \"Community Validation\",\n    \"hero_section_4_subtext\": \"Trusted user testimonials\",\n    \"hero_section_5_title\": \"Structured Onboarding\",\n    \"hero_section_5_subtext\": \"Defined post-signup steps\"\n  },\n  \"Hero_6\": {\n    \"hero_top_label\": \"Evidence-based results for tech security\",\n    \"hero_headline_1\": \"Improve XYZ Ltd’s security risk management with proven data\",\n    \"hero_subtext_1\": \"Discover metrics-driven insights and tools tailored to Technology & Security SMEs for measurable outcomes and compliance assurance.\"\n  },\n  \"How_1\": {\n    \"How_headline1\": \"Step-by-step process ensures clear, reliable results\",\n    \"How_button_1\": \"Detailed Analysis\",\n    \"How_button_2\": \"Risk Mitigation\",\n    \"How_button_3\": \"Ongoing Support\"\n  },\n  \"Informaton_3\": {\n    \"info_headline\": \"Seamless integration with your existing security framework\",\n    \"info_subtext\": \"Our solution complements current tools at XYZ Ltd, enhancing your risk management without disrupting workflows.\",\n    \"info_block_title_1\": \"API compatibility\",\n    \"info_block_subtext_1\": \"Connects easily with established systems for data consistency.\",\n    \"info_block_title_2\": \"Flexible deployment\",\n    \"info_block_subtext_2\": \"Adaptable to on-premise and cloud environments securely.\",\n    \"info_block_title_3\": \"Compliance aligned\",\n    \"info_block_subtext_3\": \"Supports regulations relevant to your industry and role.\"\n  },\n  \"Pricing_2\": {\n    \"pricing_headline\": \"Value-driven pricing: $499/month tailored for precision\",\n    \"pricing_subtext\": \"Based on feedback from our beta community, offering measurable ROI and trusted reliability.\",\n    \"pricing_benefit_title_1\": \"Comprehensive support\",\n    \"pricing_benefit_subtext_1\": \"Expert assistance ensuring smooth implementation and use.\",\n    \"pricing_benefit_title_2\": \"Regular updates\",\n    \"pricing_benefit_subtext_2\": \"Continuous improvements aligned with industry standards.\",\n    \"pricing_benefit_title_3\": \"Risk reduction\",\n    \"pricing_benefit_subtext_3\": \"Lower security vulnerabilities through proactive tools.\",\n    \"pricing_quote\": \"The pricing reflects exceptional value for a security SME focused on accuracy and compliance.\",\n    \"pricing_quote_job_title\": \"Technology & Security SME\",\n    \"pricing_quote_industry\": \"Technology Security\"\n  },\n  \"Testimonial_1\": {\n    \"testimonial_headline\": \"Trusted insights from our security-focused beta users\",\n    \"testimonial_quote\": \"Using this solution has refined my decision-making process by providing clear, data-backed evidence, essential for managing XYZ Ltd’s security risks.\",\n    \"testimonial_job_title\": \"Technology & Security SME\",\n    \"testimonial_number\": \"42\"\n  },\n  \"FAQ_1\": {\n    \"faq_headline\": \"Your questions on security and integration, answered\",\n    \"faq_subtext\": \"These FAQs are based on inquiries from professionals like you in the tech security sector.\",\n    \"faq_source_statement\": \"Colleted from beta users and industry experts.\",\n    \"faq_question_1\": \"How does this solution integrate with existing security tools?\",\n    \"faq_answer_1\": \"Our platform offers API compatibility and flexible deployment options to ensure smooth integration without disrupting your current infrastructure.\",\n    \"faq_question_2\": \"What level of support is available during onboarding?\",\n    \"faq_answer_2\": \"We provide comprehensive onboarding guidance and ongoing expert support tailored for tech security SMEs like you.\",\n    \"faq_question_3\": \"How is data security and compliance ensured?\",\n    \"faq_answer_3\": \"Our solution aligns with industry regulations and employs stringent security measures to protect your data integrity.\",\n    \"faq_question_4\": \"Can the system adapt to changes in security requirements?\",\n    \"faq_answer_4\": \"Yes, regular updates and customizable features allow the system to evolve with your company’s compliance needs.\"\n  },\n  \"CTA_3\": {\n    \"cta_headline\": \"Join the waiting list for a structured onboarding experience\",\n    \"cta_subtext\": \"After signing up, you’ll receive clear instructions and support every step of the way, tailored to your precise needs.\",\n    \"cta_button_text\": \"Join the waiting list\",\n    \"cta_step_headline_1\": \"Sign up and personalize\",\n    \"cta_step_subtext_1\": \"Provide your details to tailor the solution specifically for XYZ Ltd’s security profile.\",\n    \"cta_step_headline_2\": \"Get guided setup\",\n    \"cta_step_subtext_2\": \"Follow a clear, expert-led onboarding process designed to reduce risk and ensure compliance.\",\n    \"cta_step_headline_3\": \"Start securing confidently\",\n    \"cta_step_subtext_3\": \"Leverage data-driven insights to manage security decisions with clarity and control.\"\n  }\n}"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        []
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Section Selector1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Section Selector": {
+      "main": [
+        []
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Copy Generator1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        []
+      ]
+    },
+    "Edit Fields2": {
+      "main": [
+        [
+          {
+            "node": "Code2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Code1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Copy Generator": {
+      "main": [
+        []
+      ]
+    },
+    "OpenAI Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Persona  Generator1",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Matching agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Persona  Generator": {
+      "main": [
+        []
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respond to Webhook": {
+      "main": [
+        []
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "AI Persona  Generator1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search records": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "AI Section Selector1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code1": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code2": {
+      "main": [
+        [
+          {
+            "node": "AI Copy Generator1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Copy Generator1": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Edit Fields4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook1": {
+      "main": [
+        [
+          {
+            "node": "Search records",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Section Selector1": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook2": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request2": {
+      "main": [
+        [
+          {
+            "node": "Code3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model3": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "company analysis agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code3": {
+      "main": [
+        [
+          {
+            "node": "company analysis agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent1": {
+      "main": [
+        [
+          {
+            "node": "AI Persona  Generator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Persona  Generator1": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields5": {
+      "main": [
+        [
+          {
+            "node": "Matching agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Matching agent": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields7",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "company analysis agent": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields6",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Respond to Webhook2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields7": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "bc0b1a87-6ac2-441e-ab8a-e5faac179bbc",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "46006728130c0e110759f1b1e1cf4c052aba6d0383eb4e44455cda70f2087a80"
+  },
+  "id": "x7ke914gxiuWjxw5",
+  "tags": []
+}

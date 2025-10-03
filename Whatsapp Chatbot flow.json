@@ -1,0 +1,314 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://parabel.bubbleapps.io/version-test/api/1.1/wf/whatsapp_extract/",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n\"display_phone_number\":{{ $('WhatsApp Trigger').item.json.metadata.display_phone_number.toNumber() }},\n\"phone_number_id\":\"{{ $('WhatsApp Trigger').item.json.metadata.phone_number_id }}\",\n\"contacts\":{\n  \"name\":\"{{ $('WhatsApp Trigger').item.json.contacts[0].profile.name }}\",\n  \"wa_id\":{{ $('WhatsApp Trigger').item.json.contacts[0].wa_id.toNumber() }}\n},\n\"message\":{\n  \"from\":{{ $('WhatsApp Trigger').item.json.messages[0].from.toNumber() }},\n  \"id\":\"{{ $('WhatsApp Trigger').item.json.messages[0].id }}\",\n  \"text\":\"{{ $('WhatsApp Trigger').item.json.messages[0].text.body }}\",\n  \"timestamp\":{{ $('WhatsApp Trigger').item.json.messages[0].timestamp.toNumber() }}\n},\"exist\":\"{{ $('HTTP Request1').item.json.response.exist }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        768,
+        -304
+      ],
+      "id": "dda7c631-dc27-4e72-af70-0643abc3d2af",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "updates": [
+          "messages"
+        ],
+        "options": {}
+      },
+      "type": "n8n-nodes-base.whatsAppTrigger",
+      "typeVersion": 1,
+      "position": [
+        -208,
+        -160
+      ],
+      "id": "573a56b9-9d67-48f3-8002-e021cd19ec06",
+      "name": "WhatsApp Trigger",
+      "webhookId": "af32b780-1a9e-4c43-93ed-0764d96555dc",
+      "credentials": {
+        "whatsAppTriggerApi": {
+          "id": "3cN7umM612gfVWPN",
+          "name": "WhatsApp OAuth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=You are a friendly and helpful WhatsApp chatbot for an online store.  \nYou are always given store data in JSON format.  \nStore Data: {{ JSON.stringify($json.response['Product Type']) }}\nfor the time4 slot availability data \navailability : {{ JSON.stringify($json.response['availability ']) }}\nYour job is to answer the user’s questions naturally and politely, but ALWAYS based only on the given JSON data.  \nThe user may ask questions in any format, style, or wording. You must interpret their intent and provide the correct answer from the JSON.  \n\n### Response Format:\n- Always reply in this exact format:  \n  {\"reply\": \"Your response here\"}  \n- The value of `\"reply\"` must always be a single plain text string (flattened).  \n- Do NOT include nested JSON, arrays, or line breaks inside the reply.  \n- List multiple items as numbered or comma-separated text inside the reply.  \n\n### Core Rules:\n1. **Understand any user question** – Users may ask about products, services, subscriptions, coaching, events, requirements, or store info in freeform language.  \n   - Example: “Do you sell ebooks?”, “What do I need to give you?”, “Tell me about coaching”, “How many items do I have?”, “Show all options”.  \n2. **Answer only from JSON** – Never invent or add extra details. If something is not in the JSON, politely say it’s not available.  \n3. **Output Format** – Always respond in single-line JSON format like:  \n   {\"reply\": \"Your response here\"}  \n\n### Answering Guidelines:\n- **If the user greets** (hi, hello, etc.), start with a warm, short greeting.  \n**If they ask how many products/stores/items**: count all objects with `is_deleted_boolean = false`.  \n- **If they ask about a stores/store/product/service**:  \n  - Give name (title_text or checkout___title_text)  \n  - Short description (description_text or checkout___description_text)  \n  - Price (checkout___price_number)  \n  - Subscription details if available  \n  - Booking info or link (external_link___url_text) if available  \n- **If they ask about an event/session/coaching**:  \n  - Name  \n  - Duration (calendar_booking___time_slot_option_calendar_booking___time_slot_os or event___duration_option_events___duration_os)  \n  - Location (calendar_booking___location_option_calendar_booking___location_os)  \n  - Price and booking link if available  \n- **If they ask what info is required to buy/book**: list lead_capture___field_type_option_lead_capture___field_type_os.  \n- **If they ask how many products/stores/items**: count all objects with `is_deleted_boolean = false`.  \n- **If multiple items match**: give a short list with key details for each.  \n- **If not found in JSON**: reply with a polite “not available” message.  \n- **If they say goodbye**: end politely.  \n\n",
+              "role": "assistant"
+            },
+            {
+              "content": "=User message: \"{{ $('WhatsApp Trigger').item.json.messages[0].text.body }}\"\n"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        1088,
+        -112
+      ],
+      "id": "75672827-9c63-40b5-a896-f14ae4e99797",
+      "name": "Message a model",
+      "credentials": {
+        "openAiApi": {
+          "id": "eQXhQSL2K5QCnMwz",
+          "name": "n8n free OpenAI API credits"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "phoneNumberId": "={{ $('WhatsApp Trigger').item.json.metadata.phone_number_id }}",
+        "recipientPhoneNumber": "={{ $('WhatsApp Trigger').item.json.messages[0].from }}",
+        "textBody": "Please Give email  only",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1,
+      "position": [
+        752,
+        128
+      ],
+      "id": "c8919ea4-3545-4c25-a020-1b142730b84c",
+      "name": "Send message",
+      "webhookId": "d63eb3de-9927-4cd2-855c-9251b9437e09",
+      "credentials": {
+        "whatsAppApi": {
+          "id": "5SiXmx602OgIlgGP",
+          "name": "WhatsApp account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "23753bd0-e3c2-4ec5-9e9d-6932b83ee808",
+              "leftValue": "={{ $('WhatsApp Trigger').item.json.messages[0].text.body }}",
+              "rightValue": "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$",
+              "operator": {
+                "type": "string",
+                "operation": "regex"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        496,
+        -16
+      ],
+      "id": "65ac8c88-7abc-4aad-8781-d9f59ac2cf7d",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "0aed3dfe-a6e4-43cc-9b6b-5777d9d7d3fb",
+              "leftValue": "={{ $json.response.exist }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        240,
+        -288
+      ],
+      "id": "90b6e5f2-2419-42cb-b0ff-437ea3acfa7b",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://parabel.bubbleapps.io/version-test/api/1.1/wf/n8n_check_number",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n\"WA_ID\":\"{{ $json.contacts[0].wa_id}}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        0,
+        -160
+      ],
+      "id": "9ada24b4-fbb2-4b01-bfa6-94ff49a7af86",
+      "name": "HTTP Request1"
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "phoneNumberId": "={{ $('WhatsApp Trigger').item.json.metadata.phone_number_id }}",
+        "recipientPhoneNumber": "={{ $('WhatsApp Trigger').item.json.messages[0].from }}",
+        "textBody": "={{ $json.message.content.match(/\"reply\":\\s*\"([^\"]+)\"/)[1] }}\n",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1,
+      "position": [
+        1456,
+        -112
+      ],
+      "id": "eece97bd-379a-4bec-aab6-61e3d5430d7d",
+      "name": "Send message1",
+      "webhookId": "d63eb3de-9927-4cd2-855c-9251b9437e09",
+      "credentials": {
+        "whatsAppApi": {
+          "id": "5SiXmx602OgIlgGP",
+          "name": "WhatsApp account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "WhatsApp Trigger": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Send message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send message": {
+      "main": [
+        []
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "5613e0a8-2298-4531-8d74-be4018bbe394",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "c4292de09f52237f8ef4f2bc79f688838e0b6fa4e831db9d42474e832209e778"
+  },
+  "id": "ImLjZoyU4QF1RGvZ",
+  "tags": []
+}

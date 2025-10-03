@@ -1,0 +1,639 @@
+{
+  "name": "Lead Close Automation",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "filters": {}
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        160,
+        -16
+      ],
+      "id": "5ff11abc-cce8-43ab-ab24-24b93a915289",
+      "name": "Gmail Trigger",
+      "notesInFlow": false,
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "QI77fwzKLMX7XQLE",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "reply",
+        "messageId": "={{ $('Gmail Trigger').item.json.id }}",
+        "emailType": "text",
+        "message": "={{ JSON.parse($json[\"message\"][\"content\"]).reply .replace(\"[Your Name]\", \"demo\") .replace(\"[Your Team]\", \"demo\")}}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        976,
+        -144
+      ],
+      "id": "2b04d762-2f9e-42f6-92f4-aeedbbdfb445",
+      "name": "Reply to a message",
+      "webhookId": "8dfd91bd-f290-40f1-94e4-8c335e71eac2",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "QI77fwzKLMX7XQLE",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1bmVArj6EM3auoBb33ETdgIusgKuAKhYHwgsx_6bhrd4",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1bmVArj6EM3auoBb33ETdgIusgKuAKhYHwgsx_6bhrd4/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "From": "={{ $('Gmail Trigger').item.json.From.match(/<([^>]+)>/) ? $('Gmail Trigger').item.json.From.match(/<([^>]+)>/)[1] : $('Gmail Trigger').item.json.To }}",
+            "To": "={{ $('Gmail Trigger').item.json.To.match(/<([^>]+)>/) ? $('Gmail Trigger').item.json.To.match(/<([^>]+)>/)[1] : $('Gmail Trigger').item.json.To }}\n",
+            "internalDate": "={{ new Date($('Gmail Trigger').item.json.internalDate * 1).toLocaleString(\"en-IN\", { timeZone: \"Asia/Kolkata\" }) }}\n",
+            "name": "={{ $('Gmail Trigger').item.json.From.split(\"<\")[0].replace(/\"/g, '').trim() }}\n",
+            "Subject": "={{ $('Gmail Trigger').item.json.Subject }}",
+            "message ": "={{ $('Gmail Trigger').item.json.snippet }}",
+            "Classification ": "={{ JSON.parse($('Message a model').item.json.message.content).classification }}",
+            "Lead Type": "={{ JSON.parse($('Message a model').item.json.message.content).lead_type }}",
+            "Reply": "={{ JSON.parse($('Message a model').item.json.message.content).reply }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "From",
+              "displayName": "From",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "To",
+              "displayName": "To",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "internalDate",
+              "displayName": "internalDate",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "name",
+              "displayName": "name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Subject",
+              "displayName": "Subject",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "labels",
+              "displayName": "labels",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "message ",
+              "displayName": "message ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Classification ",
+              "displayName": "Classification ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Lead Type",
+              "displayName": "Lead Type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Reply",
+              "displayName": "Reply",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1232,
+        -128
+      ],
+      "id": "e80a00b5-70c4-41ad-8000-16f5fb8a1227",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "jPOD5bgS9J8RIVLR",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "You are an assistant that classifies incoming emails. \nReply only in this exact JSON format:\n\n{\n  \"classification\": \"lead\" | \"not lead\",\n  \"lead_type\": \"sales\" | \"job\" | \"partnership\" | \"other\" | \"\",\n  \"reply\": \"If classification is lead, write a polite reply here, otherwise empty string.\"\n}\n",
+              "role": "system"
+            },
+            {
+              "content": "=Subject: {{$json[\"Subject\"]}}\nBody: {{$json[\"snippet\"]}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        400,
+        -16
+      ],
+      "id": "d8aa2b8c-aa99-454b-8943-42113635f3ef",
+      "name": "Message a model",
+      "credentials": {
+        "openAiApi": {
+          "id": "GQmwIpFzq25JNbgk",
+          "name": "n8n free OpenAI API credits"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "9a0b33ff-d6c0-413c-abc8-b7e7efff8588",
+              "leftValue": "={{ JSON.parse($json[\"message\"][\"content\"]).classification }}",
+              "rightValue": "lead",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        768,
+        0
+      ],
+      "id": "ab1c7eca-a743-4624-9833-8ba7686e03ed",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1bmVArj6EM3auoBb33ETdgIusgKuAKhYHwgsx_6bhrd4",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1bmVArj6EM3auoBb33ETdgIusgKuAKhYHwgsx_6bhrd4/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "From": "={{ $('Gmail Trigger').item.json.From.match(/<([^>]+)>/) ? $('Gmail Trigger').item.json.From.match(/<([^>]+)>/)[1] : $('Gmail Trigger').item.json.To }}",
+            "To": "={{ $('Gmail Trigger').item.json.To.match(/<([^>]+)>/) ? $('Gmail Trigger').item.json.To.match(/<([^>]+)>/)[1] : $('Gmail Trigger').item.json.To }}\n",
+            "internalDate": "={{ new Date($('Gmail Trigger').item.json.internalDate * 1).toLocaleString(\"en-IN\", { timeZone: \"Asia/Kolkata\" }) }}\n",
+            "name": "={{ $('Gmail Trigger').item.json.From.split(\"<\")[0].replace(/\"/g, '').trim() }}\n",
+            "Subject": "={{ $('Gmail Trigger').item.json.Subject }}",
+            "message ": "={{ $('Gmail Trigger').item.json.snippet }}",
+            "Classification ": "={{ JSON.parse($('Message a model').item.json.message.content).classification }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "From",
+              "displayName": "From",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "To",
+              "displayName": "To",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "internalDate",
+              "displayName": "internalDate",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "name",
+              "displayName": "name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Subject",
+              "displayName": "Subject",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "labels",
+              "displayName": "labels",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "message ",
+              "displayName": "message ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Classification ",
+              "displayName": "Classification ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Lead Type",
+              "displayName": "Lead Type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Reply",
+              "displayName": "Reply",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1008,
+        176
+      ],
+      "id": "78be413f-f892-43e3-b0d6-5fc423282838",
+      "name": "Append row in sheet1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "jPOD5bgS9J8RIVLR",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [
+        192,
+        224
+      ],
+      "id": "89fdd71f-077d-4603-823e-bc4aedbd90e1",
+      "name": "Error Trigger"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1bmVArj6EM3auoBb33ETdgIusgKuAKhYHwgsx_6bhrd4",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1464754859,
+          "mode": "list",
+          "cachedResultName": "Errors",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1bmVArj6EM3auoBb33ETdgIusgKuAKhYHwgsx_6bhrd4/edit#gid=1464754859"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "ID": "={{ $json.execution.id }}",
+            "Message": "={{ $json.execution.error.message }}",
+            "Stack": "={{ $json.execution.error.stack }}",
+            "lastNodeExecuted": "={{ $json.execution.lastNodeExecuted }}",
+            "mode": "={{ $json.execution.mode }}",
+            "workflowname": "={{ $json.workflow.name }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "ID",
+              "displayName": "ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Message",
+              "displayName": "Message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Stack",
+              "displayName": "Stack",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "lastNodeExecuted",
+              "displayName": "lastNodeExecuted",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "mode",
+              "displayName": "mode",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "workflowname",
+              "displayName": "workflowname",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        416,
+        224
+      ],
+      "id": "8fc881d0-34e0-4618-9bfc-09d1585956ab",
+      "name": "Append row in sheet2",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "jPOD5bgS9J8RIVLR",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://parabel.bubbleapps.io/version-test/api/1.1/wf/log_lead",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"From\": \"{{ $('Gmail Trigger').item.json.From.match(/<([^>]+)>/) ? $('Gmail Trigger').item.json.From.match(/<([^>]+)>/)[1] : $('Gmail Trigger').item.json.To }}\",\n  \"To\": \"{{ $('Gmail Trigger').item.json.To.match(/<([^>]+)>/) ? $('Gmail Trigger').item.json.To.match(/<([^>]+)>/)[1] : $('Gmail Trigger').item.json.To }}\",\n  \"internalDate\": \"{{ new Date($('Gmail Trigger').item.json.internalDate * 1).toLocaleString(\"en-IN\", { timeZone: \"Asia/Kolkata\" }) }}\",\n  \"name\": \"{{ $('Gmail Trigger').item.json.From.split(\"<\")[0].replace(/\"/g, '').trim()}}\",\n  \"Subject\": \"{{ $('Gmail Trigger').item.json.Subject }}\",\n  \"labels\": [\"sthg\"],\n  \"message\": \"{{ $('Gmail Trigger').item.json.snippet}}\",\n  \"Classification\": \"{{ JSON.parse($('Message a model').item.json.message.content).classification }}\",\n  \"Lead Type\": \"{{ JSON.parse($('Message a model').item.json.message.content).lead_type }}\",\n  \"Reply\": \"{{ JSON.parse($('Message a model').item.json.message.content).reply }}\"\n}\n  ",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1216,
+        -288
+      ],
+      "id": "803097e1-4bd0-4ea2-9aa9-6021a367c68d",
+      "name": "HTTP Request"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Gmail Trigger": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reply to a message": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        []
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Reply to a message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Append row in sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Error Trigger": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "c73a5221-3880-4488-b921-2da25d107858",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "890a9583e86dce6027435d841202cd39661739574b84adfe8bbabc43b94f4152"
+  },
+  "id": "WbW68yhqc7NAzzSB",
+  "tags": []
+}
