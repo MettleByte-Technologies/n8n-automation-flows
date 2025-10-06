@@ -46,7 +46,7 @@ This repository contains a set of **n8n workflows** designed for automation acro
   - Sends shipping and tracking updates.
   - Notifies clients and providers at every stage.
 
-**File:** `Project Management flow.json`
+**File:** `Automated Order & Provider Management.json`
 
 
 ## 🚀 Getting Started
