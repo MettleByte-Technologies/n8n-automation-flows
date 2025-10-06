@@ -37,11 +37,14 @@ This repository contains a set of **n8n workflows** designed for automation acro
 
 ---
 
-### 4. Project Management Flow
+### 4. Automated Order & Provider Management
+- Platform: n8n (Tally, Notion, Stripe, Email, SMS, Shipping API)
 - Functionality:
-  - Automates task and project creation.
-  - Can assign tasks to users.
-  - Integrates with tools (Trello, Notion, Asana, etc.).
+  - Handles new customer orders end-to-end.
+  - Creates order records and invoices.
+  - Allocates providers and manages confirmations.
+  - Sends shipping and tracking updates.
+  - Notifies clients and providers at every stage.
 
 **File:** `Project Management flow.json`
 
