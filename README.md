@@ -60,7 +60,7 @@ This repository contains a set of **n8n workflows** designed for automation acro
   - Saves the newly customized resume back to Google Docs.
   - Logs each customized resume entry (job title, company, link, and document URL) in Google Sheets.
 
-**File:** `Automatically fetches resume from Google Docs..json`
+**File:** `Automatically fetches resume from Google Docs.json`
 
 
 
