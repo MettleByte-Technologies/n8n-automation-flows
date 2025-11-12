@@ -48,6 +48,21 @@ This repository contains a set of **n8n workflows** designed for automation acro
 
 **File:** `Automated Order & Provider Management.json`
 
+---
+
+### 5. Automated Resume Customization & Job Matching
+- Platform: n8n (Google Docs, Apify, OpenAI, Google Sheets)
+- Functionality:
+  - Automatically fetches resume from Google Docs.
+  - Uses Apify to scrape job listings from a provided search URL.
+  - Analyzes job descriptions using OpenAI to check relevance with the candidate’s resume.
+  - Customizes the resume based on the specific job requirements using AI.
+  - Saves the newly customized resume back to Google Docs.
+  - Logs each customized resume entry (job title, company, link, and document URL) in Google Sheets.
+
+**File:** `Automatically fetches resume from Google Docs..json`
+
+
 
 ## 🚀 Getting Started
 
