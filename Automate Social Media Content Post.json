@@ -1,0 +1,1271 @@
+{
+  "name": "Automate Social Media Content Post",
+  "nodes": [
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a social media content creator.\n\nUsing this idea:\nTitle: {{ $json.output.title }}\nDescription:{{ $json.output.rationale }}\nHook: {{ $json.output.hook }}\n\nGenerate a single-paragraph social media post including:\n- the hook blended into the text\n- 3–5 broad hashtags\n- 3–5 niche hashtags\n- 1–2 trending hashtags\n\nAlso provide: \n\"image_description\": a one-sentence description of what the image should look like.\n\nOutput JSON:\n\n{\n  \"post_text\": \"...\",\n  \"image_description\": \"...\"\n}",
+        "hasOutputParser": true,
+        "batching": {}
+      },
+      "id": "84b30f40-e7fa-4c46-9a82-39bbd2becfe0",
+      "name": "Content creator",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "position": [
+        896,
+        -48
+      ],
+      "typeVersion": 1.7
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Your task is to generate *3 different post ideas* based on this user topic:\n\nInput: {{ $json.Topic }}\n\nFor each idea, generate:\n\n{\n  \"title\": \"...\",\n  \"description\": \"...\",\n  \"hook\": \"...\"\n}\n\nGuidelines:\n- Each idea must be unique.\n- Title must be short and punchy.\n- Description must be 2–3 lines max.\n- Hook must be one powerful line.\n- No fluff, no clickbait, no extra explanation.\n- Output ONLY a valid JSON array of 6 objects.\n\n\n",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "id": "928e2771-ec9f-48ff-b34e-9c3ab9c4a828",
+      "name": "Content topic generator",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "position": [
+        240,
+        -48
+      ],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "resource": "image",
+        "prompt": "=Generate a realistic image for any social media platform (LinkedIn, Instagram, YouTube, X, TikTok, Facebook, etc.) post. Use this description as the only basis for the image: \"{{ $json.output['image description'] }}\".\nThe image must look professional and suitable for any social media platform (LinkedIn, Instagram, YouTube, X, TikTok, Facebook, etc.).\nDo NOT revise the description, do NOT expand or modify it, and do NOT include any prompt text or URLs—only produce the final image.",
+        "options": {
+          "returnImageUrls": true
+        }
+      },
+      "id": "2ae88f2a-031c-41c3-bbb9-f1555d94863a",
+      "name": "genarate image",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "position": [
+        1264,
+        -32
+      ],
+      "typeVersion": 1.8,
+      "executeOnce": false,
+      "credentials": {
+        "openAiApi": {
+          "id": "0QkN6xSS3IrqFS8K",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpRequestMethod": "POST",
+        "graphApiVersion": "v23.0",
+        "node": "17841478715120462",
+        "edge": "media",
+        "options": {
+          "queryParameters": {
+            "parameter": [
+              {
+                "name": "caption",
+                "value": "=\n{{ $json.caption }}\n"
+              }
+            ]
+          },
+          "queryParametersJson": "={\n  \"image_url\": \"{{ $json.image }}\"\n}"
+        }
+      },
+      "type": "n8n-nodes-base.facebookGraphApi",
+      "typeVersion": 1,
+      "position": [
+        3728,
+        -16
+      ],
+      "id": "174d0645-a550-42ea-865b-6f16fc9f13d0",
+      "name": "create instagram post",
+      "executeOnce": false,
+      "credentials": {
+        "facebookGraphApi": {
+          "id": "ignvFqKYOuTATpYe",
+          "name": "Facebook Graph account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpRequestMethod": "POST",
+        "graphApiVersion": "v23.0",
+        "node": "17841478715120462",
+        "edge": "media_publish",
+        "options": {
+          "queryParametersJson": "={\n  \"creation_id\": \"{{ $json.id }}\"\n}"
+        }
+      },
+      "type": "n8n-nodes-base.facebookGraphApi",
+      "typeVersion": 1,
+      "position": [
+        3920,
+        -16
+      ],
+      "id": "6714d069-3efd-442c-9239-c83ab6fb7bad",
+      "name": "post on instagram",
+      "executeOnce": false,
+      "retryOnFail": true,
+      "credentials": {
+        "facebookGraphApi": {
+          "id": "ignvFqKYOuTATpYe",
+          "name": "Facebook Graph account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpRequestMethod": "POST",
+        "graphApiVersion": "v23.0",
+        "node": "61584375174398",
+        "options": {
+          "queryParameters": {
+            "parameter": [
+              {
+                "name": "caption",
+                "value": "={{ $json.caption }}"
+              }
+            ]
+          },
+          "queryParametersJson": "={\n  \"image_url\": \"{{ $json.image }}\"\n}"
+        }
+      },
+      "type": "n8n-nodes-base.facebookGraphApi",
+      "typeVersion": 1,
+      "position": [
+        3728,
+        368
+      ],
+      "id": "01f54925-7eec-43be-9a11-5e260ffe5b99",
+      "name": "Facebook Graph API",
+      "credentials": {
+        "facebookGraphApi": {
+          "id": "ignvFqKYOuTATpYe",
+          "name": "Facebook Graph account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Instagram post",
+        "height": 288,
+        "width": 528
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        3568,
+        -80
+      ],
+      "id": "7354a207-67d2-43d3-a6db-d0f0a28f08fa",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## Facebook post",
+        "height": 272,
+        "width": 1184,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        3552,
+        320
+      ],
+      "id": "64c8716f-1601-46b2-b55e-53d0a099e29c",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "## Generate the topic",
+        "height": 384,
+        "width": 576,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        80,
+        -144
+      ],
+      "id": "b75189fd-7cd7-47b7-8deb-cf1b5aad6e41",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "[{\n \"title\": \"AI as Your First Content Hire: Why Founders Shouldn't Wait to Outsource Creation\",\n            \"rationale\": \"Most solopreneurs delay content scaling because they think hiring a ghostwriter is the next step — but AI can handle 80% with proper systems. This shifts content from a creative bottleneck to a scalable growth lever.\",\n            \"hook\": \"Ghostwriters are outdated. Train GPT once, and it ships LinkedIn gold in your voice daily. Welcome to hands-free thought leadership.\"\n          }]"
+      },
+      "id": "c7094a20-a96a-4db8-9ee4-95f86de800ac",
+      "name": "Structured Output",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "position": [
+        384,
+        128
+      ],
+      "typeVersion": 1.2
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "id": "10577345-0f96-42bf-a5db-7f9f205f7359",
+      "name": "Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "position": [
+        240,
+        128
+      ],
+      "typeVersion": 1.2,
+      "credentials": {
+        "openAiApi": {
+          "id": "0QkN6xSS3IrqFS8K",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Generate content and images ",
+        "height": 384,
+        "width": 688,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        688,
+        -144
+      ],
+      "id": "2563b920-398e-4811-a1de-bfa38592c2e5",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "id": "6fdea8df-7cb4-4418-8dab-e5faa9e76b6b",
+      "name": "Chat Model1",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "position": [
+        880,
+        160
+      ],
+      "typeVersion": 1.2,
+      "credentials": {
+        "openAiApi": {
+          "id": "0QkN6xSS3IrqFS8K",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"post title\": \"Exciting New Feature Launch 🚀\",\n  \"post content\": \"After months of collaboration, testing, and fine-tuning, we're thrilled to introduce our latest product feature: Smart Insights. It helps users uncover meaningful patterns in their data with just a few clicks. This wouldn't have been possible without our incredible team and supportive community. We're excited for what's next — and we'd love your feedback!\",\n  \"image description\": \"A laptop screen showcasing the new Smart Insights dashboard with colorful charts and graphs, surrounded by a team clapping in the background.\"\n}"
+      },
+      "id": "cc1e5e3c-31de-4d1b-948b-89165fbc9769",
+      "name": "Structured Output1",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "position": [
+        1024,
+        160
+      ],
+      "typeVersion": 1.2
+    },
+    {
+      "parameters": {
+        "content": "## Store image on cloudinary",
+        "height": 384,
+        "width": 608,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1456,
+        -144
+      ],
+      "id": "1112de98-6abb-4b01-bbbf-8bed4a2e3407",
+      "name": "Sticky Note5"
+    },
+    {
+      "parameters": {
+        "content": "## Give Topic ",
+        "height": 384,
+        "width": 528
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -496,
+        -144
+      ],
+      "id": "fe7ece9c-cc7f-4605-9135-917edd9e7e2b",
+      "name": "Sticky Note6"
+    },
+    {
+      "parameters": {
+        "formTitle": "Social media generator",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Topic",
+              "placeholder": "Please enter your topic (2or 3 line)",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {
+          "buttonLabel": "Submit"
+        }
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.3,
+      "position": [
+        -272,
+        -32
+      ],
+      "id": "9c2a255a-efe0-49a8-98eb-cca4ca17208e",
+      "name": "Submit your Topic",
+      "webhookId": "11e76d8c-ee48-4712-a7b0-fc78d84d3cd2"
+    },
+    {
+      "parameters": {
+        "content": "## LInkedin post \n",
+        "height": 320,
+        "width": 1264,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        3568,
+        -448
+      ],
+      "id": "72b781f1-f758-4104-9317-09652c10b089",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "={{ $('get upload url').item.json.value.uploadMechanism[\"com.linkedin.digitalmedia.uploading.MediaUploadHttpRequest\"].uploadUrl }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "image/png"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "binaryData",
+        "inputDataFieldName": "data",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        4352,
+        -368
+      ],
+      "id": "9fcb279c-cf3e-4cee-8d24-51934ea2f6df",
+      "name": "UPLOAD IMAGE",
+      "executeOnce": false
+    },
+    {
+      "parameters": {
+        "url": "={{ $('JAVASCRIPT SELECTED POST').item.json.image }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {}
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        4096,
+        -368
+      ],
+      "id": "97373fef-da82-4120-9c75-77be590ce1ef",
+      "name": "download image",
+      "executeOnce": false,
+      "retryOnFail": false
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.linkedin.com/v2/ugcPosts",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "=json",
+        "bodyParameters": {
+          "parameters": [
+            {}
+          ]
+        },
+        "jsonBody": "={\n  \"author\": \"urn:li:person:{{ $('get user info').item.json.sub }}\",\n  \"lifecycleState\": \"PUBLISHED\",\n  \"specificContent\": {\n    \"com.linkedin.ugc.ShareContent\": {\n      \"shareCommentary\": {\n        \"text\": \"{{ $('JAVASCRIPT SELECTED POST').item.json.caption }}\"\n      },\n      \"shareMediaCategory\": \"IMAGE\",\n      \"media\": [\n        {\n          \"status\": \"READY\",\n          \"description\": {\n            \"text\": \"Generated image\"\n          },\n          \"media\": \"{{ $('get upload url').item.json.value.asset }}\",\n          \"title\": {\n            \"text\": \"My AI Generated Image\"\n          }\n        }\n      ]\n    }\n  },\n  \"visibility\": {\n    \"com.linkedin.ugc.MemberNetworkVisibility\": \"PUBLIC\"\n  }\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        4592,
+        -368
+      ],
+      "id": "37c03b8f-5d44-4304-9963-fa568f4b2059",
+      "name": "Linkdin Post",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "ih1NAewfWyGLMuP1",
+          "name": "Header Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.linkedin.com/v2/assets?action=registerUpload",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"registerUploadRequest\": {\n    \"owner\": \"urn:li:person:{{ $json.sub }}\",\n    \"recipes\": [\n      \"urn:li:digitalmediaRecipe:feedshare-image\"\n    ],\n    \"serviceRelationships\": [\n      {\n        \"identifier\": \"urn:li:userGeneratedContent\",\n        \"relationshipType\": \"OWNER\"\n      }\n    ]\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        3856,
+        -368
+      ],
+      "id": "5f58fcd9-8d53-40a1-bbcd-1297ea29b81f",
+      "name": "get upload url",
+      "executeOnce": false,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "ih1NAewfWyGLMuP1",
+          "name": "Header Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "=https://api.linkedin.com/v2/userinfo",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        3632,
+        -368
+      ],
+      "id": "05c23cf6-2845-4ada-819d-3b101af0a80e",
+      "name": "get user info",
+      "executeOnce": false,
+      "notesInFlow": false,
+      "retryOnFail": false,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "ih1NAewfWyGLMuP1",
+          "name": "Header Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "=output",
+        "include": "allOtherFields",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        704,
+        -48
+      ],
+      "id": "4e010efa-6009-4fb9-8802-8ee7ee29378e",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.cloudinary.com/v1_1/do1gfocr5/image/upload",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {}
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "file",
+              "value": "={{ $json.url }}"
+            },
+            {
+              "name": "upload_preset",
+              "value": "sanjay"
+            },
+            {
+              "name": "folder",
+              "value": "n8n_uploads"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1504,
+        -32
+      ],
+      "id": "b35337f5-faee-4d33-befc-ef78567d4303",
+      "name": "Cloudinary image"
+    },
+    {
+      "parameters": {
+        "resume": "form",
+        "formTitle": "select ",
+        "formFields": {
+          "values": [
+            {
+              "fieldType": "html",
+              "elementName": "=post1",
+              "html": "\n<div style=\"border:1px solid #ccc; padding:10px; margin-bottom:50px;\">\n  <h1>Post 1(Rank-{{ $json.post1.Rank }})</h1>\n  <img src=\"{{ $json.post1.image }}\" width=\"300\" />\n  <p>{{ $json.post1.text }}</p>\n</div>\n\n\n\n"
+            },
+            {
+              "fieldType": "html",
+              "elementName": "post2",
+              "html": "\n<div style=\"border:1px solid #ccc; padding:10px; margin-bottom:50px;\">\n  <h1>Post 2(Rank-{{ $json.post2.Rank }})</h1>\n  <img src=\"{{ $json.post2.image }}\" width=\"300\" />\n  <p>{{ $json.post2.text }}</p>\n</div>\n"
+            },
+            {
+              "fieldType": "html",
+              "elementName": "post3",
+              "html": "\n<div style=\"border:1px solid #ccc; padding:10px; margin-bottom:50px;\">\n  <h1>Post 3(Rank-{{ $json.post3.Rank }})</h1>\n  <img src=\"{{ $json.post3.image }}\" width=\"300\" />\n  <p>{{ $json.post3.text }}</p>\n</div>\n\n"
+            },
+            {
+              "fieldLabel": "Select Your Post",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "post1"
+                  },
+                  {
+                    "option": "post2"
+                  },
+                  {
+                    "option": "post3"
+                  }
+                ]
+              },
+              "multiselect": true,
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {
+          "appendAttribution": true
+        }
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        2816,
+        -32
+      ],
+      "id": "9c98a8ac-9a7e-4c75-98aa-6786875d9099",
+      "name": "Wait",
+      "webhookId": "c88eec14-25f3-42aa-92d7-0945237efaf9",
+      "notesInFlow": false
+    },
+    {
+      "parameters": {
+        "url": "={{ $('JAVASCRIPT SELECTED POST').item.json.image }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {}
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        3984,
+        368
+      ],
+      "id": "5b24a920-5bef-4236-b777-8abe0c09fed8",
+      "name": "download image1",
+      "executeOnce": false,
+      "retryOnFail": false
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "select": "user",
+        "user": {
+          "__rl": true,
+          "value": "U09JU4P9ANS",
+          "mode": "list",
+          "cachedResultName": "jigar"
+        },
+        "messageType": "attachment",
+        "attachments": [
+          {
+            "image_url": "={{ $('JAVASCRIPT SELECTED POST').item.json.image }}",
+            "title": "={{ $('JAVASCRIPT SELECTED POST').item.json.caption }}"
+          }
+        ],
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        4560,
+        368
+      ],
+      "id": "22422034-c041-4e1e-8d8d-86e0c6e30242",
+      "name": "Send a message",
+      "webhookId": "701f0507-825f-4fe5-a581-1bde700d5b33",
+      "credentials": {
+        "slackOAuth2Api": {
+          "id": "kO5FuYgZDfqvR8b9",
+          "name": "Slack account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// // Get the selected key from previous node\n// const selected = $input.all().json[\"Select Your Post\"];\n\n// // Get all incoming JSON\n// const allData = $input.first().json;\n\n// // Get the selected post (string)\n// const selectedPost = allData[selected] || \"\";\n\n// // Return the selected post\n// return [\n//   {\n//     json: {\n//       post: selectedPost\n//     }\n//   }\n// ];\n\n\n\n// // Get all incoming JSON\n// const data = $input.first().json;\n\n// // Selected key (post1, post2, post3)\n// const selectedKey = data[\"Select Your Post\"];\n\n// // Get the HTML of the selected post\n// const html = data[selectedKey] || \"\";\n\n// // If nothing found\n// if (!html || !html.includes(\"<div\")) {\n//   return [{ json: { error: \"Selected post contains no HTML\" }}];\n// }\n\n// // STEP 1 — Normalize HTML\n// const clean = html.replace(/\\s+/g, \" \").trim();\n\n// // STEP 2 — Extract title\n// const title = (clean.match(/<h1>(.*?)<\\/h1>/i) || [null, \"\"])[1];\n\n// // STEP 3 — Extract image URL\n// const image = (clean.match(/<img[^>]+src=\"([^\"]+)\"/i) || [null, \"\"])[1];\n\n// // STEP 4 — Extract caption\n// const caption = (clean.match(/<p>(.*?)<\\/p>/i) || [null, \"\"])[1].trim();\n\n// // STEP 5 — Extract hashtags\n// const hashtags = caption.match(/#[a-zA-Z0-9_]+/g) || [];\n\n// return [\n//   {\n//     json: {\n//       title,\n//       image,\n//       caption,\n//       hashtags\n//     }\n//   }\n// ];\n\n// Get incoming full JSON\nconst data = $input.first().json;\n\n// Array of selected posts from form\nconst selectedKeys = data[\"Select Your Post\"];\n\n// Ensure selection exists\nif (!Array.isArray(selectedKeys) || selectedKeys.length === 0) {\n  return [{ json: { error: \"No posts selected\" }}];\n}\n\n// Function to extract structured data from HTML\nfunction extractPost(html) {\n  if (!html || !html.includes(\"<div\")) {\n    return { error: \"Invalid HTML format\" };\n  }\n\n  const clean = html.replace(/\\s+/g, \" \").trim();\n\n  const title = (clean.match(/<h1>(.*?)<\\/h1>/i) || [\"\", \"\"])[1];\n  const image = (clean.match(/<img[^>]+src=\"([^\"]+)\"/i) || [\"\", \"\"])[1];\n  const caption = (clean.match(/<p>(.*?)<\\/p>/i) || [\"\", \"\"])[1].trim();\n\n  return { title, image, caption };\n}\n\n// Build output for each selected post\nconst results = selectedKeys.map(key => {\n  const html = data[key];\n  return {\n    json: {\n      post: key,\n      ...extractPost(html)\n    }\n  };\n});\n\nreturn results;\n\n\n\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3104,
+        -32
+      ],
+      "id": "9683c0aa-5047-4fd0-b007-fa5f0cea55cd",
+      "name": "JAVASCRIPT SELECTED POST"
+    },
+    {
+      "parameters": {
+        "jsCode": "const creatorItems = $('Content creator').all();  // all titles/texts\n\nconst finalJson = {};\n\nitems.forEach((item, index) => {\n  const key = `post${index + 1}`;\n\n  const creatorData = creatorItems[index]?.json?.output || {};\n\n  finalJson[key] = {\n    title: creatorData['post title'] || null,\n    text: creatorData['post content'] || null,\n    image: item.json.secure_url || null\n  };\n});\n\nreturn [{ json: finalJson }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1728,
+        -32
+      ],
+      "id": "4e54a987-ef38-4ee7-be74-e083ff550120",
+      "name": "JavaScript CONVERT IN JSON"
+    },
+    {
+      "parameters": {
+        "inputDataFieldName": "=data",
+        "name": "={{ $('JAVASCRIPT SELECTED POST').item.json.post }}",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "1f8qdlkyRnsF0od_v2RCoASRtUWYe8E82",
+          "mode": "list",
+          "cachedResultName": "Social media post ",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/1f8qdlkyRnsF0od_v2RCoASRtUWYe8E82"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        4288,
+        368
+      ],
+      "id": "c4b83332-dc64-4cb9-a4e2-3468d5c207cd",
+      "name": "Upload file",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "wMt3PFJTBGyPcPv0",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "[\n  {\n    \"post1\": {\n      \"Rank\": 1,\n      \"title\": \"Epic Road Trip Adventures\",\n      \"text\": \"Turn your car into a time machine of memories! 🚗✨ Join us on an exhilarating journey as we explore the thrill of hitting the open road with our best friend! From spontaneous detours to unforgettable memories, let’s discover how to make the most of our road trips together. Are you ready for the adventure of a lifetime? #RoadTripAdventures #ExploreTogether #BestFriendGoals #Wanderlust #TravelDiaries #AdventureAwaits #TravelBuddies #RoadTripLife\",\n      \"image\": \"https://res.cloudinary.com/do1gfocr5/image/upload/v1764330837/n8n_uploads/m37hkumri2icws8blkrz.png\"\n    },\n    \"post2\": {\n      \"Rank\": 2,\n      \"title\": \"Pack Less, Experience More\",\n      \"text\": \"Less stuff means more adventure! Traveling light is the secret to unlocking amazing experiences—join me and my friend as we explore the art of packing smart. Discover essential tips that help you carry just what you need, so you can maximize your journey and dive into the moments that matter. #TravelLight #AdventureAwaits #Wanderlust #Backpacking #MinimalistTravel #ExploreMore #TravelTips #TravelSmart\",\n      \"image\": \"https://res.cloudinary.com/do1gfocr5/image/upload/v1764330837/n8n_uploads/dgpbcaler2dj1knbnlsg.png\"\n    },\n    \"post3\": {\n      \"Rank\": 3,\n      \"title\": \"Cultural Exploration Duo\",\n      \"text\": \"🌍 Two travelers, double the cultural immersion! Join us as we dive into new cultures together and discover how traveling with a friend can enhance our understanding and appreciation of local traditions and cuisines. From delicious street food to vibrant festivals, the journey is always richer with a companion! #TravelWithFriends #CulturalExploration #Wanderlust #FoodieAdventures #TravelGoals #CulturalAppreciation #ExploreTogether #TravelDiaries\",\n      \"image\": \"https://res.cloudinary.com/do1gfocr5/image/upload/v1764330837/n8n_uploads/murf8pzsniq8zccvkwcu.png\"\n    }\n  }\n]\n"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        2256,
+        128
+      ],
+      "id": "36a6440e-6600-4716-88f0-f70f4154ff14",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        2112,
+        128
+      ],
+      "id": "6373f11d-9337-4217-85f1-07f562657ee0",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "0QkN6xSS3IrqFS8K",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=System Instruction:\n\nIMPORTANT: For your response, you MUST use the `format_final_json_response` tool with your complete answer formatted according to the required schema. Do not format JSON manually — n8n will reject it. Only use this tool once you are ready to provide your final answer.\n\nHuman Instruction:\n\nYou are an expert social media strategist.\n\nTask: Analyze the following posts and rank them from best to worst based on predicted engagement. Evaluate caption quality, storytelling, clarity, hashtags, and the appeal of the image URL.\n\nPosts:\n\nPost 1:\nTitle: {{ $json.post1.title }}\nText: {{ $json.post1.text }}\nImage: {{ $json.post1.image }}\n\nPost 2:\nTitle: {{ $json.post2.title }}\nText: {{ $json.post2.text }}\nImage: {{ $json.post2.image }}\n\nPost 3:\nTitle: {{ $json.post3.title }}\nText: {{ $json.post3.text }}\nImage: {{ $json.post3.image }}\n\nRules:\n- Return **ONLY valid JSON** using `format_final_json_response`.\n- Include Rank, Title, Text, and Image for each post.\n- Rank 1 = highest engagement potential, Rank 3 = lowest.\n- Do not add explanations, commentary, or extra text outside the JSON.\n- JSON structure must be exactly:\n\n[\n  {\n    \"post1\": {\n      \"Rank\": rank_number,\n      \"title\": \"{{ $json.post1.title }}\",\n      \"text\": \"{{ $json.post1.text }}\",\n      \"image\": \"{{ $json.post1.image }}\"\n    },\n    \"post2\": {\n      \"Rank\": rank_number,\n      \"title\": \"{{ $json.post2.title }}\",\n      \"text\": \"{{ $json.post2.text }}\",\n      \"image\": \"{{ $json.post2.image }}\"\n    },\n    \"post3\": {\n      \"Rank\": rank_number,\n      \"title\": \"{{ $json.post3.title }}\",\n      \"text\": \"{{ $json.post3.text }}\",\n      \"image\": \"{{ $json.post3.image }}\"\n    }\n  }\n]\n\nNow evaluate and return the JSON using the `format_final_json_response` tool.\n",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        2112,
+        -32
+      ],
+      "id": "647b3c14-36c9-4f31-bc62-1b1ebc1ae5ca",
+      "name": "Give Rank to Post"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Input: items from the previous node (your AI output)\nconst input = items[0].json.output; // adjust path if different\n\n// We assume input is an array with one object containing post1, post2, post3\nconst postsObject = input[0];\n\n// Convert the object into an array for sorting\nlet postsArray = Object.entries(postsObject).map(([key, value]) => {\n  return {\n    key: key,\n    ...value\n  };\n});\n\n// Sort the array by Rank ascending\npostsArray.sort((a, b) => a.Rank - b.Rank);\n\n// Convert back to object with same keys in sorted order\nconst sortedPostsObject = {};\npostsArray.forEach((post, index) => {\n  sortedPostsObject[post.key] = {\n    Rank: post.Rank,\n    title: post.title,\n    text: post.text,\n    image: post.image\n  };\n});\n\n// Return as n8n items\nreturn [\n  { json: sortedPostsObject }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2464,
+        -32
+      ],
+      "id": "6fe14e9c-f589-4d48-82f1-b55c8033d2ef",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "url": "={{ $('JAVASCRIPT SELECTED POST').item.json.image }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {}
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        3664,
+        800
+      ],
+      "id": "6564e17c-a9df-4986-85e4-137c2a02aca6",
+      "name": "download image2",
+      "executeOnce": false,
+      "retryOnFail": false
+    },
+    {
+      "parameters": {
+        "content": "## Select here to Select Your Post",
+        "height": 384,
+        "width": 640,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        2688,
+        -144
+      ],
+      "id": "1629758c-a421-48e0-9cda-417368320b4f",
+      "name": "Sticky Note7"
+    },
+    {
+      "parameters": {
+        "content": "## Given Rank To the Post ",
+        "height": 384,
+        "width": 560
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        2080,
+        -144
+      ],
+      "id": "5159b3d8-435e-44d9-b19d-961de9733ee8",
+      "name": "Sticky Note8"
+    },
+    {
+      "parameters": {
+        "content": "##  WhatsApp Post ",
+        "height": 272,
+        "width": 464,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        4016,
+        672
+      ],
+      "id": "d06ea523-c219-48e2-aa80-29a6d757553a",
+      "name": "Sticky Note9"
+    },
+    {
+      "parameters": {
+        "content": "## Telegram Post",
+        "height": 256,
+        "width": 464,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        4016,
+        1008
+      ],
+      "id": "dd843624-85ab-4344-a578-baa635519a8d",
+      "name": "Sticky Note10"
+    },
+    {
+      "parameters": {
+        "operation": "sendPhoto",
+        "chatId": "=7121388529",
+        "file": "={{ $('JAVASCRIPT SELECTED POST').item.json.image }}",
+        "additionalFields": {
+          "caption": "={{ $json.caption }}"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        4192,
+        1088
+      ],
+      "id": "e36797c9-68a4-4ace-b62f-7bb25e2426de",
+      "name": "Telegram",
+      "webhookId": "53539ae7-1999-4b3b-bb1b-d13bee09b0fb",
+      "credentials": {
+        "telegramApi": {
+          "id": "uFtLuLdPm3qV6cQh",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "phoneNumberId": "879006988632827",
+        "recipientPhoneNumber": "+91 83207 34215",
+        "messageType": "image",
+        "mediaPath": "=data",
+        "additionalFields": {
+          "mediaCaption": "={{ $json.caption }}"
+        }
+      },
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1.1,
+      "position": [
+        4192,
+        752
+      ],
+      "id": "074a9318-22f0-48fb-b5f5-4b692c4c12e5",
+      "name": "WhatsApp",
+      "webhookId": "895c852a-b923-48fd-a74a-426951628ec8",
+      "credentials": {
+        "whatsAppApi": {
+          "id": "RdYG5yuSt3bGhdYI",
+          "name": "WhatsApp account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Content creator": {
+      "main": [
+        [
+          {
+            "node": "genarate image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Content topic generator": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "genarate image": {
+      "main": [
+        [
+          {
+            "node": "Cloudinary image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "create instagram post": {
+      "main": [
+        [
+          {
+            "node": "post on instagram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Content topic generator",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Content topic generator",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Content creator",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output1": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Content creator",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Submit your Topic": {
+      "main": [
+        [
+          {
+            "node": "Content topic generator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "download image": {
+      "main": [
+        [
+          {
+            "node": "UPLOAD IMAGE",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "UPLOAD IMAGE": {
+      "main": [
+        [
+          {
+            "node": "Linkdin Post",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get upload url": {
+      "main": [
+        [
+          {
+            "node": "download image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get user info": {
+      "main": [
+        [
+          {
+            "node": "get upload url",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Content creator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cloudinary image": {
+      "main": [
+        [
+          {
+            "node": "JavaScript CONVERT IN JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "JAVASCRIPT SELECTED POST",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "post on instagram": {
+      "main": [
+        []
+      ]
+    },
+    "download image1": {
+      "main": [
+        [
+          {
+            "node": "Upload file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Facebook Graph API": {
+      "main": [
+        [
+          {
+            "node": "download image1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "JAVASCRIPT SELECTED POST": {
+      "main": [
+        [
+          {
+            "node": "create instagram post",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Facebook Graph API",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "download image2",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "get user info",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "JavaScript CONVERT IN JSON": {
+      "main": [
+        [
+          {
+            "node": "Give Rank to Post",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload file": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Give Rank to Post",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Give Rank to Post",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Give Rank to Post": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "download image2": {
+      "main": [
+        [
+          {
+            "node": "WhatsApp",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "f4680378-521a-4830-b89e-fbaa47a11667",
+  "meta": {
+    "templateId": "4968",
+    "templateCredsSetupCompleted": true,
+    "instanceId": "1d9967c2dffbef008c7349419a778d32ad29c9bd278ac1f3f3a0200f67976356"
+  },
+  "id": "H1ZCigGTfErzty4T",
+  "tags": []
+}
